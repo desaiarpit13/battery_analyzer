@@ -1,38 +1,44 @@
-# 🔋 Battery Analyzer
+# ⚡ VOLTIX PRO — Modern Battery Analyzer & Electrochemical Telemetry Suite
 
-A beginner-friendly Python project for analyzing battery performance using **voltage, current, power, capacity, and energy data**.
+A modern, high-precision Python battery analysis workstation and interactive GUI application for analyzing battery discharge performance, capacity, energy, internal resistance, and electrochemical health.
 
-The project takes battery measurements from a CSV file, processes the data using Python, generates graphs, and produces an automatic battery analysis report.
+![Voltix Pro Dashboard](tab0_dashboard.png)
 
 ---
 
 ## 📌 Project Overview
 
-The **Battery Analyzer** is designed to turn raw battery measurement data into useful information.
+**VOLTIX PRO** transforms raw battery telemetry data into an interactive, visual engineering experience. Built with **PySide6 (Qt6)**, **Pandas**, **NumPy**, and **Matplotlib**, it provides real-time telemetry playback, multi-channel synchronized plots, electrochemical phase decomposition, and automated diagnostic reports.
 
-Instead of manually analyzing every measurement, the Python program automatically calculates:
+### Key Capabilities
 
-* 🔌 Initial Voltage
-* 🔋 Final Voltage
-* 📉 Voltage Drop
-* ⚡ Average Current
-* ⚡ Maximum Current
-* 🔥 Average Power
-* 🔥 Maximum Power
-* 🔋 Delivered Capacity
-* ⚡ Delivered Energy
-
-It also generates graphs showing how the battery parameters change with time.
+* ⚡ **Modern Cyber-Engineering Interface**: Deep dark aesthetic (`#0B0F19`) with glowing neon accents, responsive layout, and high-DPI scaling.
+* 🔋 **Interactive Physical Battery HUD**: Real-time animated battery gauge showing cell level depletion, terminal voltage, and instantaneous metrics.
+* 🕹️ **Dynamic Simulation Playback**: Scrubbable timeline with `Play`, `Pause`, `Reset`, and speed multiplier controls (`1x`, `2x`, `5x`, `10x`) with a real-time tracking cursor.
+* 📊 **Multi-Channel Synchronized Charts**:
+  * **Voltage vs Time** (with cutoff threshold & working plateau lines)
+  * **Current & Power vs Time** (dual-axis dynamic load tracking)
+  * **Capacity & Energy Accumulation** (Ah/mAh & Wh/mWh vs Time)
+  * **V vs Delivered Capacity** (the definitive battery discharge curve)
+* 🔬 **Electrochemical Diagnostics**:
+  * **Discharge Phase Breakdown**: Ohmic drop, working plateau, and knee depletion zones.
+  * **State of Charge (SoC %)** vs Voltage curve.
+  * **Voltage Sag Rate ($|dV/dt|$)** in $mV/s$.
+  * **DC Internal Resistance ($R_{dc}$)** estimation in $m\Omega$.
+* 📑 **Comprehensive Diagnostics & Reporting**:
+  * Automated cell grading (`Grade A`, `Grade B`, `Grade C`).
+  * Safety compliance checks (cutoff voltage violations, high sag rates, over-current).
+  * One-click **Interactive HTML Report** export with interactive Chart.js graphs.
+  * Tabular data inspector with real-time text filtering and CSV export.
 
 ---
 
-## 🛠️ Technologies Used
+## 🛠️ Architecture & Technologies
 
-* **Python**
-* **Pandas** — Data processing and analysis
-* **NumPy** — Numerical operations
-* **Matplotlib** — Data visualization
-* **CSV** — Battery measurement data storage
+* **GUI Framework**: [PySide6 (Qt 6)](https://www.qt.io/) — Native, hardware-accelerated desktop workstation interface.
+* **Data Processing**: [Pandas](https://pandas.pydata.org/) & [NumPy](https://numpy.org/) — High-precision numerical analysis and trapezoidal integration.
+* **Visualization**: [Matplotlib](https://matplotlib.org/) — Custom dark cyber-themed plots embedded via `FigureCanvasQTAgg`.
+* **Web Reporting**: HTML5, CSS3 Glassmorphism, and [Chart.js](https://www.chartjs.org/) for standalone shareable interactive web reports.
 
 ---
 
@@ -41,329 +47,123 @@ It also generates graphs showing how the battery parameters change with time.
 ```text
 Batery Analyzer/
 │
-├── Battery_analyzer.py
-├── battery_data.csv
-└── README.md
-```
-
-> Note: The project folder is named `Batery Analyzer` in the current version.
-
----
-
-## 📊 Input Data
-
-The program reads battery measurements from:
-
-```text
-battery_data.csv
-```
-
-The CSV file contains:
-
-| Column  | Description      | Unit    |
-| ------- | ---------------- | ------- |
-| Time    | Measurement time | seconds |
-| Voltage | Battery voltage  | V       |
-| Current | Battery current  | A       |
-
-### Example
-
-```csv
-Time,Voltage,Current
-0,4.20,2.00
-10,4.15,2.01
-20,4.10,2.00
-30,4.05,1.98
-40,4.00,2.02
-50,3.95,2.00
+├── modern_battery_analyzer.py   # Flagship PySide6 GUI application & HUD
+├── battery_engine.py            # Core battery math, diagnostics, & HTML generator
+├── Battery_data.csv             # Primary battery test telemetry dataset
+├── battery_report.html          # Standalone interactive browser report
+├── tab0_dashboard.png           # Telemetry Dashboard screenshot
+├── tab1_electrochemistry.png    # Electrochemical Curves screenshot
+├── tab2_simulation.png          # Dynamic Simulation HUD screenshot
+├── tab3_inspector.png           # Data Inspector Table screenshot
+├── tab4_report.png              # Diagnostic Report screenshot
+└── README.md                    # Project documentation
 ```
 
 ---
 
-## ⚙️ How It Works
+## 🚀 Getting Started
 
-### 1. Read the CSV
+### 1. Requirements
 
-The program loads the battery data using Pandas.
-
-```python
-data = pd.read_csv("battery_data.csv")
-```
-
-### 2. Calculate Power
-
-Power is calculated using:
-
-```text
-Power = Voltage × Current
-```
-
-```python
-data["Power"] = data["Voltage"] * data["Current"]
-```
-
----
-
-### 3. Calculate Time Difference
-
-The program calculates the time difference between consecutive measurements:
-
-```python
-data["dt"] = data["Time"].diff().fillna(0)
-```
-
----
-
-### 4. Calculate Capacity
-
-Battery capacity is estimated using:
-
-```text
-Capacity (Ah) = Current × Time / 3600
-```
-
-The program performs cumulative integration:
-
-```python
-data["Capacity_Ah"] = (
-    data["Current"] * data["dt"]
-).cumsum() / 3600
-```
-
----
-
-### 5. Calculate Energy
-
-Energy is calculated from power over time:
-
-```text
-Energy (Wh) = Power × Time / 3600
-```
-
-```python
-data["Energy_Wh"] = (
-    data["Power"] * data["dt"]
-).cumsum() / 3600
-```
-
----
-
-## 📈 Graphs Generated
-
-The program generates five graphs:
-
-### 1. Voltage vs Time
-
-Shows how the battery voltage changes during the measurement.
-
-### 2. Current vs Time
-
-Shows the current drawn from the battery.
-
-### 3. Power vs Time
-
-Shows the instantaneous power calculated from voltage and current.
-
-### 4. Capacity vs Time
-
-Shows the accumulated charge delivered by the battery.
-
-### 5. Energy vs Time
-
-Shows the accumulated energy delivered by the battery.
-
----
-
-## 📋 Automatic Battery Report
-
-After processing the data, the program generates a report similar to:
-
-```text
-======================================
-          BATTERY ANALYSIS
-======================================
-
-Initial Voltage      : 4.20 V
-Final Voltage        : 3.20 V
-Voltage Drop         : 1.00 V
-
-Average Current      : 1.85 A
-Maximum Current      : 2.05 A
-
-Average Power        : 6.25 W
-Maximum Power        : 8.61 W
-
-Delivered Capacity   : 1.2345 Ah
-Delivered Energy     : 4.5678 Wh
-
-======================================
-         ANALYSIS COMPLETE
-======================================
-```
-
----
-
-## 🚀 How to Run
-
-### Step 1 — Install Python
-
-Make sure Python is installed on your computer.
-
-Check using:
+Ensure you have Python 3.10+ installed. Install the dependencies:
 
 ```bash
-python --version
+pip install PySide6 matplotlib pandas numpy
 ```
 
 ---
 
-### Step 2 — Install Required Libraries
+### 2. Launching the Modern Interface
 
-Run:
+To open the modern interactive GUI application:
 
 ```bash
-pip install pandas numpy matplotlib
+python modern_battery_analyzer.py
 ```
 
----
-
-### Step 3 — Clone the Repository
+You can also pass a custom CSV file directly:
 
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
+python modern_battery_analyzer.py path/to/my_battery_data.csv
 ```
 
-Then enter the project directory:
+---
+
+### 3. Additional Execution Modes
+
+#### Headless / Terminal Mode
+To print the full engineering analysis and save a summary report without launching the GUI:
 
 ```bash
-cd "Batery Analyzer"
+python modern_battery_analyzer.py --cli
 ```
 
----
-
-### Step 4 — Add Battery Data
-
-Make sure:
-
-```text
-battery_data.csv
-```
-
-is present in the same folder as:
-
-```text
-Battery_analyzer.py
-```
-
----
-
-### Step 5 — Run the Program
+#### Generate Standalone Interactive Web Report
+To generate an interactive HTML report viewable in any web browser:
 
 ```bash
-python Battery_analyzer.py
+python modern_battery_analyzer.py --html
 ```
 
-The program will generate the graphs and print the battery analysis report in the terminal.
+---
+
+## 📐 Mathematical & Engineering Formulations
+
+### 1. Instantaneous Power
+$$P_i = V_i \times I_i \quad \text{[Watts]}$$
+
+### 2. High-Precision Trapezoidal Capacity Integration
+Delivered capacity is calculated using cumulative trapezoidal numerical integration over sample intervals $\Delta t$:
+$$\text{Capacity}(t) = \frac{1}{3600} \sum_{k=1}^{n} \left(\frac{I_{k-1} + I_k}{2}\right) \Delta t_k \quad \text{[Ampere-hours (Ah)]}$$
+
+### 3. High-Precision Delivered Energy Integration
+$$\text{Energy}(t) = \frac{1}{3600} \sum_{k=1}^{n} \left(\frac{P_{k-1} + P_k}{2}\right) \Delta t_k \quad \text{[Watt-hours (Wh)]}$$
+
+### 4. Thermodynamic Mean Discharge Voltage
+$$\bar{V}_{\text{discharge}} = \frac{\text{Delivered Energy (Wh)}}{\text{Delivered Capacity (Ah)}} \quad \text{[Volts]}$$
+
+### 5. DC Internal Resistance ($R_{dc}$) Estimation
+Estimated from dynamic current transitions where $|\Delta I| \ge 0.025\,\text{A}$:
+$$R_{dc} \approx \frac{|\Delta V|}{|\Delta I|} \times 1000 \quad \text{[milliohms } (m\Omega)\text{]}$$
+
+### 6. Voltage Sag Velocity
+$$\frac{dV}{dt} = \frac{V_k - V_{k-1}}{\Delta t_k} \times 1000 \quad \text{[mV/s]}$$
+
+### 7. State of Charge (SoC %)
+$$\text{SoC}(t) = 100 \times \left(1 - \frac{\text{Capacity}(t)}{\text{Capacity}_{\text{total}}}\right) \quad [\%]$$
 
 ---
 
-## 🎯 Project Goals
+## 🖥️ User Interface Tour
 
-This project was built to practice:
+````carousel
+![Telemetry Dashboard](tab0_dashboard.png)
+<!-- slide -->
+![Electrochemical Curves](tab1_electrochemistry.png)
+<!-- slide -->
+![Dynamic Simulation](tab2_simulation.png)
+<!-- slide -->
+![Data Inspector](tab3_inspector.png)
+<!-- slide -->
+![Diagnostic Report](tab4_report.png)
+````
 
-* Python programming
-* Pandas data analysis
-* NumPy numerical calculations
-* Matplotlib visualization
-* CSV data handling
-* Basic battery analysis
-* Engineering data interpretation
-
-The larger goal is to understand how **real battery measurement data can be processed using programming**.
-
----
-
-## 🔬 Current Limitations
-
-This is a **basic battery data-analysis tool**, not a complete Battery Management System (BMS).
-
-Currently, it does not directly perform:
-
-* State of Charge (SOC) estimation
-* State of Health (SOH) estimation
-* Battery temperature analysis
-* Cell balancing
-* Cycle-life analysis
-* Internal resistance estimation
-* Coulombic efficiency calculation
-* Battery degradation modeling
-
-These are potential future improvements.
+1. **Top Header & Chemistry Selector**:
+   - Select chemistry presets: `Li-ion NMC (4.2V)`, `LiFePO4 (3.65V)`, `LTO (2.8V)`, `NiMH (1.45V)`, or custom.
+   - Adjust nominal rated capacity and cutoff threshold on the fly.
+   - Quick action buttons to load any CSV, export HTML reports, and save high-resolution chart snapshots.
+2. **KPI Metrics Banner**:
+   - Real-time glassmorphic cards showing Terminal Voltage, Delivered Capacity ($Ah$ / $mAh$), Delivered Energy ($Wh$ / $mWh$), Dynamic Current & Power, and Cell Health Grade.
+3. **5 Dedicated Tabs**:
+   - **Telemetry Dashboard**: 4 synchronized subplots with custom dark styling and plateau markers.
+   - **Electrochemical Curves**: Detailed $V$ vs $Ah$ discharge curve with shaded phases (Ohmic, Plateau, Knee), OCV-SoC profile, $dV/dt$ sag rate, and Power vs Voltage.
+   - **Dynamic Simulation**: Visual battery cell draining in real time, digital HUD indicators, scrub slider, and animated graph cursor.
+   - **Data Inspector Table**: Filterable table with all calculated engineering metrics and instant CSV export.
+   - **Diagnostic Report**: Audit report with cell grade, degradation analysis, and one-click copy/save options.
 
 ---
 
-## 🔮 Future Improvements
+## 👨‍💻 Author & License
 
-Possible upgrades include:
-
-### Level 1 — More Measurements
-
-Add:
-
-* Temperature
-* Multiple battery cells
-* Charging/discharging state
-
-### Level 2 — Battery Health
-
-Implement:
-
-* SOC estimation
-* SOH estimation
-* Capacity degradation
-* Cycle counting
-
-### Level 3 — Advanced Analysis
-
-Add:
-
-* Internal resistance estimation
-* Voltage sag analysis
-* Charge/discharge curve analysis
-* Battery efficiency
-* Cycle-to-cycle comparison
-
-### Level 4 — Visualization
-
-Build an interactive dashboard using tools such as:
-
-* Plotly
-* Streamlit
-
-### Level 5 — Real-Time Battery Analyzer
-
-Connect the software to actual hardware sensors and allow Python to analyze battery measurements in real time.
-
----
-
-## ⚠️ Important Note
-
-The accuracy of the analysis depends on the quality and sampling interval of the input data.
-
-The calculated capacity and energy are estimates based on the voltage, current, and time measurements provided in the CSV file.
-
-This project is intended for **learning and engineering analysis**, not for safety-critical battery management.
-
----
-
-## 👨‍💻 Author
-
-**Arpit Desai**
-
-Engineering Student | Electronics | Battery Technology | Python
-
----
-
-## 📜 License
-
-This project is open-source and available for educational and personal use.
+Developed for high-precision battery performance analysis and engineering education.  
+Open-source under the MIT License.
