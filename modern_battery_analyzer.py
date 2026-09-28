@@ -1,6 +1,6 @@
 """
-VOLTIX PRO // Modern Battery Analyzer & Electrochemical Telemetry Suite
-State-of-the-art Python desktop application with PySide6 and Matplotlib.
+VOLTIX STUDIO // Modern Battery Analyzer & Electrochemical Telemetry Suite
+Next-Generation UI with Studio Sidebar Navigation, Real-Time HUD, and Telemetry Lab.
 """
 
 import sys
@@ -13,122 +13,161 @@ import pandas as pd
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QComboBox, QDoubleSpinBox, QFileDialog,
-    QTabWidget, QTableWidget, QTableWidgetItem, QHeaderView,
+    QStackedWidget, QTableWidget, QTableWidgetItem, QHeaderView,
     QSlider, QProgressBar, QFrame, QSplitter, QMessageBox,
-    QScrollArea, QLineEdit, QSizePolicy
+    QScrollArea, QLineEdit, QSizePolicy, QButtonGroup
 )
-from PySide6.QtCore import Qt, QTimer, Signal, Slot
-from PySide6.QtGui import QFont, QColor, QPalette, QIcon, QPainter, QBrush, QPen, QLinearGradient, QPixmap
+from PySide6.QtCore import Qt, QTimer, Signal, Slot, QSize
+from PySide6.QtGui import (
+    QFont, QColor, QPalette, QIcon, QPainter, QBrush, QPen,
+    QLinearGradient, QRadialGradient, QPixmap
+)
 
 import matplotlib
 matplotlib.use("QtAgg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from matplotlib.ticker import AutoMinorLocator
 
 from battery_engine import BatteryDataset, load_and_analyze, export_html_report, BatteryMetrics
 
 
 # ==============================================================================
-# MODERN DARK CYBER-ENGINEERING STYLESHEET
+# NEXT-GEN STUDIO DARK CYBER THEME (QSS)
 # ==============================================================================
-MODERN_QSS = """
+STUDIO_QSS = """
+/* Global Window */
 QMainWindow, QWidget#MainRoot {
-    background-color: #0b0f17;
+    background-color: #070a12;
+    color: #f1f5f9;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', Roboto, sans-serif;
+}
+
+/* Sidebar */
+QFrame#Sidebar {
+    background-color: #0d121f;
+    border-right: 1px solid #1a233a;
+    min-width: 240px;
+    max-width: 250px;
+}
+
+/* Sidebar Navigation Buttons */
+QPushButton.NavButton {
+    background-color: transparent;
+    color: #94a3b8;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+}
+QPushButton.NavButton:hover {
+    background-color: rgba(255, 255, 255, 0.04);
     color: #f8fafc;
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+}
+QPushButton.NavButton:checked {
+    background-color: rgba(0, 229, 255, 0.12);
+    color: #00e5ff;
+    border-left: 3px solid #00e5ff;
+    font-weight: 700;
 }
 
-QFrame#HeaderCard, QFrame#KpiCard, QFrame#PanelCard, QFrame#SimCard {
-    background-color: #141b2d;
-    border: 1px solid #23304a;
-    border-radius: 10px;
+/* Cards & Containers */
+QFrame#TopNavBar, QFrame#HeroCard, QFrame#PanelCard, QFrame#SimCard, QFrame#SidebarCard {
+    background-color: #111728;
+    border: 1px solid #1e2942;
+    border-radius: 12px;
+}
+QFrame#HeroCard {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #141b2f, stop:1 #0f1526);
+    border: 1px solid #222f4c;
+}
+QFrame#HeroCard:hover {
+    border: 1px solid #38bdf8;
+    background-color: #162038;
 }
 
-QFrame#KpiCard:hover {
-    border: 1px solid #3b82f6;
-    background-color: #182239;
-}
-
-/* Headings & Text */
+/* Labels & Typography */
 QLabel {
     color: #f8fafc;
 }
+QLabel#BrandTitle {
+    font-size: 18px;
+    font-weight: 900;
+    color: #00e5ff;
+    letter-spacing: 0.8px;
+}
 QLabel#MutedLabel {
-    color: #94a3b8;
-    font-size: 11px;
-}
-QLabel#KpiTitle {
-    color: #94a3b8;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-QLabel#KpiValue {
-    color: #f8fafc;
-    font-size: 22px;
-    font-weight: 700;
-}
-QLabel#KpiSub {
     color: #64748b;
     font-size: 11px;
+    font-weight: 500;
+}
+QLabel#HeroTitle {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+QLabel#HeroValue {
+    color: #f8fafc;
+    font-size: 21px;
+    font-weight: 800;
+}
+QLabel#HeroSub {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 500;
 }
 
 /* Buttons */
 QPushButton {
-    background-color: #1e293b;
-    color: #f8fafc;
-    border: 1px solid #334155;
-    border-radius: 6px;
+    background-color: #1a2236;
+    color: #f1f5f9;
+    border: 1px solid #2d3b59;
+    border-radius: 7px;
     padding: 7px 14px;
     font-weight: 600;
     font-size: 12px;
 }
 QPushButton:hover {
-    background-color: #2b3952;
-    border: 1px solid #00e5ff;
-    color: #00e5ff;
+    background-color: #263352;
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
 }
 QPushButton:pressed {
-    background-color: #0f172a;
+    background-color: #0d121f;
 }
-QPushButton#PrimaryBtn {
-    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0284c7, stop:1 #00e5ff);
+QPushButton#PrimaryGlowBtn {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #00d2ff, stop:1 #3a7bd5);
     color: #ffffff;
     border: none;
     font-weight: 700;
+    border-radius: 7px;
 }
-QPushButton#PrimaryBtn:hover {
-    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0369a1, stop:1 #38bdf8);
+QPushButton#PrimaryGlowBtn:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #00e5ff, stop:1 #4a8bf5);
     color: #ffffff;
 }
-QPushButton#AccentBtn {
-    background-color: #1e1b4b;
+QPushButton#AccentGlowBtn {
+    background-color: rgba(99, 102, 241, 0.15);
     color: #a5b4fc;
     border: 1px solid #4f46e5;
+    border-radius: 7px;
+    font-weight: 600;
 }
-QPushButton#AccentBtn:hover {
-    background-color: #312e81;
-    color: #c7d2fe;
-}
-QFrame#HudFrame {
-    background-color: #0d131f;
-    border: 1px solid #1e293b;
-    border-radius: 8px;
-}
-QFrame#HudFrame QLabel {
-    border: none;
-    background: transparent;
+QPushButton#AccentGlowBtn:hover {
+    background-color: rgba(99, 102, 241, 0.3);
+    color: #e0e7ff;
 }
 
-/* Inputs & Spinners */
+/* Inputs & Combos */
 QComboBox, QDoubleSpinBox, QLineEdit {
-    background-color: #0f172a;
-    border: 1px solid #334155;
+    background-color: #0a0f1d;
+    border: 1px solid #23304d;
     border-radius: 6px;
-    padding: 5px 10px;
+    padding: 6px 10px;
     color: #f8fafc;
     font-size: 12px;
 }
@@ -140,58 +179,28 @@ QComboBox::drop-down {
     padding-right: 8px;
 }
 QComboBox QAbstractItemView {
-    background-color: #141b2d;
-    border: 1px solid #334155;
+    background-color: #111728;
+    border: 1px solid #2d3b59;
     color: #f8fafc;
     selection-background-color: #1e293b;
     selection-color: #00e5ff;
 }
 
-/* Tabs */
-QTabWidget::pane {
-    border: 1px solid #23304a;
-    background-color: #0e1422;
-    border-radius: 8px;
-    top: -1px;
-}
-QTabBar::tab {
-    background-color: #141b2d;
-    color: #94a3b8;
-    border: 1px solid #23304a;
-    border-bottom: none;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-    padding: 8px 18px;
-    margin-right: 4px;
-    font-weight: 600;
-    font-size: 12px;
-}
-QTabBar::tab:selected {
-    background-color: #0e1422;
-    color: #00e5ff;
-    border-top: 2px solid #00e5ff;
-    border-bottom: 1px solid #0e1422;
-}
-QTabBar::tab:hover:!selected {
-    background-color: #1c263e;
-    color: #f8fafc;
-}
-
 /* Table Widget */
 QTableWidget {
-    background-color: #101626;
-    border: 1px solid #23304a;
+    background-color: #0b0f1a;
+    border: 1px solid #1e2942;
     border-radius: 8px;
-    gridline-color: #1e293b;
+    gridline-color: #162035;
     color: #f8fafc;
     font-size: 12px;
 }
 QHeaderView::section {
-    background-color: #141b2d;
+    background-color: #111728;
     color: #94a3b8;
-    padding: 6px 8px;
-    border: 1px solid #23304a;
-    font-weight: 600;
+    padding: 7px 10px;
+    border: 1px solid #1a233a;
+    font-weight: 700;
 }
 QTableWidget::item:selected {
     background-color: rgba(0, 229, 255, 0.15);
@@ -200,32 +209,32 @@ QTableWidget::item:selected {
 
 /* ScrollBars */
 QScrollBar:vertical {
-    background: #0b0f17;
-    width: 8px;
+    background: #070a12;
+    width: 7px;
     margin: 0px;
-    border-radius: 4px;
+    border-radius: 3px;
 }
 QScrollBar::handle:vertical {
-    background: #334155;
+    background: #23304d;
     min-height: 20px;
-    border-radius: 4px;
+    border-radius: 3px;
 }
 QScrollBar::handle:vertical:hover {
-    background: #475569;
+    background: #38bdf8;
 }
 QScrollBar:horizontal {
-    background: #0b0f17;
-    height: 8px;
+    background: #070a12;
+    height: 7px;
     margin: 0px;
-    border-radius: 4px;
+    border-radius: 3px;
 }
 QScrollBar::handle:horizontal {
-    background: #334155;
+    background: #23304d;
     min-width: 20px;
-    border-radius: 4px;
+    border-radius: 3px;
 }
 QScrollBar::handle:horizontal:hover {
-    background: #475569;
+    background: #38bdf8;
 }
 QScrollBar::add-line, QScrollBar::sub-line {
     background: none;
@@ -234,9 +243,9 @@ QScrollBar::add-line, QScrollBar::sub-line {
 
 /* Slider */
 QSlider::groove:horizontal {
-    border: 1px solid #334155;
+    border: 1px solid #23304d;
     height: 6px;
-    background: #141b2d;
+    background: #0a0f1d;
     border-radius: 3px;
 }
 QSlider::sub-page:horizontal {
@@ -245,7 +254,7 @@ QSlider::sub-page:horizontal {
 }
 QSlider::handle:horizontal {
     background: #f8fafc;
-    border: 1px solid #00e5ff;
+    border: 2px solid #00e5ff;
     width: 14px;
     margin-top: -5px;
     margin-bottom: -5px;
@@ -255,37 +264,34 @@ QSlider::handle:horizontal:hover {
     background: #00e5ff;
 }
 
-/* Progress Bar */
-QProgressBar {
-    border: 1px solid #334155;
-    border-radius: 6px;
-    text-align: center;
-    background-color: #0f172a;
-    color: #f8fafc;
-    font-weight: 600;
+/* HUD Frame */
+QFrame#HudFrame {
+    background-color: #0a0f1d;
+    border: 1px solid #1e2942;
+    border-radius: 8px;
 }
-QProgressBar::chunk {
-    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #10b981, stop:1 #00e5ff);
-    border-radius: 5px;
+QFrame#HudFrame QLabel {
+    border: none;
+    background: transparent;
 }
 """
 
 
 # ==============================================================================
-# CUSTOM MATPLOTLIB CANVAS WITH HIGH-TECH DARK THEME
+# HIGH-DEFINITION DARK MATPLOTLIB CANVAS
 # ==============================================================================
-class DarkMplCanvas(FigureCanvas):
-    """Reusable Matplotlib canvas with cyber dark engineering styling."""
+class StudioMplCanvas(FigureCanvas):
+    """Reusable high-resolution Matplotlib canvas with custom dark studio aesthetic."""
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor="#0e1422")
+        self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor="#0b0f1a")
         super().__init__(self.fig)
         self.setParent(parent)
-        self.setStyleSheet("background-color: #0e1422; border-radius: 8px;")
+        self.setStyleSheet("background-color: #0b0f1a; border-radius: 8px;")
 
-    def apply_dark_theme(self, ax):
-        """Applies consistent dark theme to an axis."""
-        ax.set_facecolor("#121929")
+    def apply_studio_theme(self, ax):
+        """Applies a crisp dark engineering theme to an axis."""
+        ax.set_facecolor("#0e1526")
         ax.tick_params(colors="#94a3b8", labelsize=9, which="both")
         ax.xaxis.label.set_color("#cbd5e1")
         ax.yaxis.label.set_color("#cbd5e1")
@@ -293,22 +299,22 @@ class DarkMplCanvas(FigureCanvas):
         ax.title.set_fontsize(11)
         ax.title.set_fontweight("bold")
         for spine in ax.spines.values():
-            spine.set_color("#23304a")
+            spine.set_color("#1e2942")
             spine.set_linewidth(1.0)
-        ax.grid(True, linestyle="--", alpha=0.3, color="#334155")
+        ax.grid(True, linestyle="--", alpha=0.25, color="#334155")
 
 
 # ==============================================================================
-# BATTERY VISUAL GAUGE (CUSTOM WIDGET)
+# PHYSICAL CELL VISUAL GAUGE (3D-STYLED GRAPHIC)
 # ==============================================================================
-class BatteryLevelWidget(QWidget):
-    """Modern graphic showing a physical battery cell draining dynamically."""
+class BatteryCell3DWidget(QWidget):
+    """Futuristic 3D-styled cross-section battery cell with fluid level depletion."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.soc_pct = 100.0
         self.voltage = 4.20
-        self.setFixedSize(150, 160)
+        self.setFixedSize(160, 160)
 
     def set_values(self, soc_pct: float, voltage: float):
         self.soc_pct = max(0.0, min(100.0, soc_pct))
@@ -323,12 +329,12 @@ class BatteryLevelWidget(QWidget):
         h = self.height()
 
         # Terminal cap at top
-        cap_w = 32
+        cap_w = 34
         cap_h = 7
         cap_x = (w - cap_w) // 2
         cap_y = 6
-        painter.setBrush(QBrush(QColor("#64748b")))
-        painter.setPen(QPen(QColor("#94a3b8"), 1))
+        painter.setBrush(QBrush(QColor("#475569")))
+        painter.setPen(QPen(QColor("#64748b"), 1))
         painter.drawRoundedRect(cap_x, cap_y, cap_w, cap_h, 3, 3)
 
         # Outer battery cylinder
@@ -336,8 +342,8 @@ class BatteryLevelWidget(QWidget):
         body_y = 14
         body_w = w - 48
         body_h = h - 42
-        painter.setBrush(QBrush(QColor("#0b0f19")))
-        painter.setPen(QPen(QColor("#334155"), 2))
+        painter.setBrush(QBrush(QColor("#080c16")))
+        painter.setPen(QPen(QColor("#1e2942"), 2))
         painter.drawRoundedRect(body_x, body_y, body_w, body_h, 10, 10)
 
         # Fluid Level
@@ -353,7 +359,7 @@ class BatteryLevelWidget(QWidget):
                 col_top = QColor("#00e5ff")
                 col_bot = QColor("#10b981")
             elif self.soc_pct > 20:
-                col_top = QColor("#fbbf24")
+                col_top = QColor("#facc15")
                 col_bot = QColor("#f59e0b")
             else:
                 col_top = QColor("#f87171")
@@ -368,15 +374,15 @@ class BatteryLevelWidget(QWidget):
             painter.drawRoundedRect(fill_x, fill_y, fill_w, fill_h, 6, 6)
 
         # Text inside battery
-        painter.setPen(QColor("#f8fafc"))
-        font_pct = QFont("Segoe UI", 14, QFont.Bold)
+        painter.setPen(QColor("#ffffff"))
+        font_pct = QFont("Segoe UI", 15, QFont.Bold)
         painter.setFont(font_pct)
-        painter.drawText(body_x, body_y + (body_h // 2) - 12, body_w, 24, Qt.AlignCenter, f"{self.soc_pct:.1f}%")
+        painter.drawText(body_x, body_y + (body_h // 2) - 13, body_w, 24, Qt.AlignCenter, f"{self.soc_pct:.1f}%")
 
         font_v = QFont("Segoe UI", 10, QFont.Normal)
         painter.setFont(font_v)
         painter.setPen(QColor("#94a3b8"))
-        painter.drawText(body_x, body_y + (body_h // 2) + 10, body_w, 18, Qt.AlignCenter, f"{self.voltage:.2f} V")
+        painter.drawText(body_x, body_y + (body_h // 2) + 11, body_w, 18, Qt.AlignCenter, f"{self.voltage:.2f} V")
 
         font_sub = QFont("Segoe UI", 9, QFont.Bold)
         painter.setFont(font_sub)
@@ -385,19 +391,19 @@ class BatteryLevelWidget(QWidget):
 
 
 # ==============================================================================
-# MAIN APPLICATION WINDOW
+# MAIN APPLICATION WINDOW (STUDIO REDESIGN)
 # ==============================================================================
 class ModernBatteryAnalyzer(QMainWindow):
-    """Flagship modern battery analyzer application with multi-tab telemetry analysis."""
+    """Voltix Studio // Modern Battery Analyzer & Electrochemical Telemetry Suite."""
 
     def __init__(self, initial_csv: str = "Battery_data.csv"):
         super().__init__()
-        self.setWindowTitle("VOLTIX PRO // Modern Battery Analyzer & Electrochemical Telemetry Suite")
-        self.resize(1340, 890)
-        self.setMinimumSize(1080, 720)
+        self.setWindowTitle("VOLTIX STUDIO // Modern Battery Analyzer & Telemetry Suite")
+        self.resize(1360, 900)
+        self.setMinimumSize(1100, 740)
 
         self.initial_csv = initial_csv
-        self.dataset: Optional[BatteryDataset] = None
+        self.dataset = None
 
         # Playback timer
         self.play_timer = QTimer(self)
@@ -411,205 +417,281 @@ class ModernBatteryAnalyzer(QMainWindow):
         if os.path.exists(self.initial_csv):
             self.load_dataset(self.initial_csv)
         else:
-            # Check lowercase
             alt = self.initial_csv.lower()
             if os.path.exists(alt):
                 self.load_dataset(alt)
 
     def _init_ui(self):
-        """Construct the UI hierarchy."""
+        """Constructs the modern Studio Workspace layout with Sidebar Rail and Main Canvas."""
         root = QWidget()
         root.setObjectName("MainRoot")
         self.setCentralWidget(root)
 
-        main_layout = QVBoxLayout(root)
-        main_layout.setContentsMargins(16, 14, 16, 14)
-        main_layout.setSpacing(12)
+        root_layout = QHBoxLayout(root)
+        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.setSpacing(0)
 
-        # 1. Top Header Bar
-        header = self._build_header()
-        main_layout.addWidget(header)
+        # 1. Left Studio Sidebar
+        sidebar = self._build_sidebar()
+        root_layout.addWidget(sidebar)
 
-        # 2. KPI Cards Row
-        kpi_row = self._build_kpi_row()
-        main_layout.addWidget(kpi_row)
+        # 2. Right Main Studio Canvas
+        canvas_container = QWidget()
+        canvas_layout = QVBoxLayout(canvas_container)
+        canvas_layout.setContentsMargins(18, 14, 18, 14)
+        canvas_layout.setSpacing(12)
 
-        # 3. Main Work Tabs
-        self.tabs = QTabWidget()
-        self.tabs.addTab(self._build_tab_dashboard(), "📊 Telemetry Dashboard")
-        self.tabs.addTab(self._build_tab_electrochemistry(), "⚡ Electrochemical Curves")
-        self.tabs.addTab(self._build_tab_simulation(), "🕹️ Dynamic Simulation")
-        self.tabs.addTab(self._build_tab_inspector(), "📋 Data Inspector & Table")
-        self.tabs.addTab(self._build_tab_report(), "📑 Diagnostic Report")
-        main_layout.addWidget(self.tabs, stretch=1)
+        # Top Bar
+        top_bar = self._build_top_bar()
+        canvas_layout.addWidget(top_bar)
 
-        # 4. Status Bar
-        self.status_bar_label = QLabel("Ready • No active alarms")
+        # Hero KPI Row
+        hero_row = self._build_hero_kpis()
+        canvas_layout.addWidget(hero_row)
+
+        # Main Stacked Views (Studio Pages)
+        self.pages = QStackedWidget()
+        self.pages.addWidget(self._build_page_cockpit())          # Index 0: Overview Cockpit
+        self.pages.addWidget(self._build_page_electrochemistry()) # Index 1: Electrochemical Lab
+        self.pages.addWidget(self._build_page_simulation())       # Index 2: Cell Simulator
+        self.pages.addWidget(self._build_page_matrix())           # Index 3: Telemetry Matrix
+        self.pages.addWidget(self._build_page_report())           # Index 4: Diagnostic Certificate
+        self.pages.currentChanged.connect(self._on_page_changed)
+        canvas_layout.addWidget(self.pages, stretch=1)
+
+        # Footer Status
+        self.status_bar_label = QLabel("● Ready • System initialized")
         self.status_bar_label.setStyleSheet("color: #64748b; font-size: 11px; padding: 2px 4px;")
-        main_layout.addWidget(self.status_bar_label)
+        canvas_layout.addWidget(self.status_bar_label)
+
+        root_layout.addWidget(canvas_container, stretch=1)
+
+    def _on_page_changed(self, idx: int):
+        btn = self.nav_group.button(idx)
+        if btn and not btn.isChecked():
+            btn.setChecked(True)
 
     # --------------------------------------------------------------------------
-    # HEADER SECTION
+    # LEFT STUDIO SIDEBAR
     # --------------------------------------------------------------------------
-    def _build_header(self) -> QWidget:
-        card = QFrame()
-        card.setObjectName("HeaderCard")
-        h_layout = QHBoxLayout(card)
-        h_layout.setContentsMargins(16, 10, 16, 10)
-        h_layout.setSpacing(16)
+    def _build_sidebar(self) -> QWidget:
+        sidebar = QFrame()
+        sidebar.setObjectName("Sidebar")
+        layout = QVBoxLayout(sidebar)
+        layout.setContentsMargins(14, 18, 14, 18)
+        layout.setSpacing(16)
 
-        # Title block
-        title_box = QVBoxLayout()
-        title_box.setSpacing(2)
-        title_lbl = QLabel("⚡ VOLTIX PRO")
-        title_lbl.setStyleSheet("font-size: 20px; font-weight: 800; color: #00e5ff; letter-spacing: 0.5px;")
-        sub_lbl = QLabel("High-Precision Battery Performance & Electrochemical Diagnostic Suite")
-        sub_lbl.setStyleSheet("font-size: 11px; color: #94a3b8;")
-        sub_lbl.setMinimumWidth(440)
-        title_box.addWidget(title_lbl)
-        title_box.addWidget(sub_lbl)
-        h_layout.addLayout(title_box)
+        # Brand header
+        brand_box = QVBoxLayout()
+        brand_box.setSpacing(3)
+        brand_lbl = QLabel("⚡ VOLTIX STUDIO")
+        brand_lbl.setObjectName("BrandTitle")
 
-        h_layout.addStretch(1)
+        ver_row = QHBoxLayout()
+        badge_ver = QLabel("v2.5 PRO")
+        badge_ver.setStyleSheet("background: rgba(0, 229, 255, 0.15); color: #00e5ff; border: 1px solid rgba(0, 229, 255, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;")
+        status_dot = QLabel("● ACTIVE")
+        status_dot.setStyleSheet("color: #10b981; font-size: 10px; font-weight: 700;")
+        ver_row.addWidget(badge_ver)
+        ver_row.addWidget(status_dot)
+        ver_row.addStretch(1)
 
-        # Controls: Dataset pill
-        self.lbl_dataset = QLabel("📁 No CSV Loaded")
-        self.lbl_dataset.setStyleSheet("background: #0f172a; border: 1px solid #334155; padding: 6px 12px; border-radius: 6px; font-weight: 600; color: #38bdf8; font-size: 12px;")
-        h_layout.addWidget(self.lbl_dataset)
+        brand_box.addWidget(brand_lbl)
+        brand_box.addLayout(ver_row)
+        layout.addLayout(brand_box)
 
-        # Chemistry selector
-        chem_box = QVBoxLayout()
-        chem_box.setSpacing(1)
-        chem_lbl = QLabel("Chemistry:")
-        chem_lbl.setObjectName("MutedLabel")
+        # Section Label
+        sec_nav = QLabel("WORKSPACES")
+        sec_nav.setObjectName("MutedLabel")
+        layout.addWidget(sec_nav)
+
+        # Navigation Buttons (Radio group)
+        self.nav_group = QButtonGroup(self)
+        self.nav_group.setExclusive(True)
+
+        nav_items = [
+            ("📊  Overview Cockpit", 0),
+            ("⚡  Electrochemical Lab", 1),
+            ("🕹️  Cell Simulator", 2),
+            ("📋  Telemetry Matrix", 3),
+            ("📑  Diagnostic Report", 4)
+        ]
+
+        for text, idx in nav_items:
+            btn = QPushButton(text)
+            btn.setProperty("class", "NavButton")
+            btn.setCheckable(True)
+            if idx == 0:
+                btn.setChecked(True)
+            btn.clicked.connect(lambda checked, i=idx: self.pages.setCurrentIndex(i))
+            self.nav_group.addButton(btn, idx)
+            layout.addWidget(btn)
+
+        layout.addSpacing(10)
+
+        # Section Label: Parameters
+        sec_cfg = QLabel("CELL PARAMETERS")
+        sec_cfg.setObjectName("MutedLabel")
+        layout.addWidget(sec_cfg)
+
+        # Card for Chemistry & Specs
+        cfg_card = QFrame()
+        cfg_card.setObjectName("SidebarCard")
+        cfg_lay = QVBoxLayout(cfg_card)
+        cfg_lay.setContentsMargins(12, 12, 12, 12)
+        cfg_lay.setSpacing(10)
+
+        # Chemistry combo
+        lbl_chem = QLabel("Chemistry Preset:")
+        lbl_chem.setObjectName("MutedLabel")
         self.combo_chem = QComboBox()
         self.combo_chem.addItems([
-            "Li-ion NMC/LCO (4.2V)",
+            "Li-ion NMC (4.2V)",
             "LiFePO4 / LFP (3.65V)",
             "LTO / Titanate (2.8V)",
             "NiMH (1.45V)",
             "Custom"
         ])
         self.combo_chem.currentIndexChanged.connect(self._on_chem_changed)
-        chem_box.addWidget(chem_lbl)
-        chem_box.addWidget(self.combo_chem)
-        h_layout.addLayout(chem_box)
+        cfg_lay.addWidget(lbl_chem)
+        cfg_lay.addWidget(self.combo_chem)
 
         # Rated Capacity
-        cap_box = QVBoxLayout()
-        cap_box.setSpacing(1)
-        cap_lbl = QLabel("Nominal Rating:")
-        cap_lbl.setObjectName("MutedLabel")
+        lbl_cap = QLabel("Nominal Rating (Ah):")
+        lbl_cap.setObjectName("MutedLabel")
         self.spin_capacity = QDoubleSpinBox()
         self.spin_capacity.setRange(0.05, 500.0)
         self.spin_capacity.setValue(2.00)
         self.spin_capacity.setSingleStep(0.1)
         self.spin_capacity.setSuffix(" Ah")
         self.spin_capacity.valueChanged.connect(self._recalc_with_params)
-        cap_box.addWidget(cap_lbl)
-        cap_box.addWidget(self.spin_capacity)
-        h_layout.addLayout(cap_box)
+        cfg_lay.addWidget(lbl_cap)
+        cfg_lay.addWidget(self.spin_capacity)
 
         # Cutoff Voltage
-        cut_box = QVBoxLayout()
-        cut_box.setSpacing(1)
-        cut_lbl = QLabel("Cutoff V:")
-        cut_lbl.setObjectName("MutedLabel")
+        lbl_cut = QLabel("Cutoff Voltage (V):")
+        lbl_cut.setObjectName("MutedLabel")
         self.spin_cutoff = QDoubleSpinBox()
         self.spin_cutoff.setRange(0.5, 100.0)
         self.spin_cutoff.setValue(3.20)
         self.spin_cutoff.setSingleStep(0.05)
         self.spin_cutoff.setSuffix(" V")
         self.spin_cutoff.valueChanged.connect(self._recalc_with_params)
-        cut_box.addWidget(cut_lbl)
-        cut_box.addWidget(self.spin_cutoff)
-        h_layout.addLayout(cut_box)
+        cfg_lay.addWidget(lbl_cut)
+        cfg_lay.addWidget(self.spin_cutoff)
 
-        # Action Buttons
-        self.btn_load = QPushButton("📂 Load CSV")
-        self.btn_load.setObjectName("PrimaryBtn")
-        self.btn_load.clicked.connect(self.on_open_file_dialog)
-        h_layout.addWidget(self.btn_load)
+        layout.addWidget(cfg_card)
 
-        self.btn_html = QPushButton("🌐 HTML Report")
-        self.btn_html.setObjectName("AccentBtn")
-        self.btn_html.clicked.connect(self.on_export_html)
-        h_layout.addWidget(self.btn_html)
+        layout.addStretch(1)
 
-        self.btn_snapshot = QPushButton("📸 Snap Charts")
-        self.btn_snapshot.clicked.connect(self.on_save_charts)
-        h_layout.addWidget(self.btn_snapshot)
+        # Bottom load button in sidebar
+        self.btn_load_side = QPushButton("📂 Open CSV File")
+        self.btn_load_side.setObjectName("PrimaryGlowBtn")
+        self.btn_load_side.setFixedHeight(34)
+        self.btn_load_side.clicked.connect(self.on_open_file_dialog)
+        layout.addWidget(self.btn_load_side)
 
-        return card
+        return sidebar
 
     # --------------------------------------------------------------------------
-    # KPI METRIC CARDS ROW
+    # TOP CANVAS BAR
     # --------------------------------------------------------------------------
-    def _build_kpi_row(self) -> QWidget:
+    def _build_top_bar(self) -> QWidget:
+        top_bar = QFrame()
+        top_bar.setObjectName("TopNavBar")
+        layout = QHBoxLayout(top_bar)
+        layout.setContentsMargins(16, 10, 16, 10)
+        layout.setSpacing(14)
+
+        # Breadcrumb / Dataset indicator
+        self.lbl_dataset = QLabel("📁 Battery_data.csv")
+        self.lbl_dataset.setStyleSheet("background: #090e1c; border: 1px solid #1e2942; padding: 6px 14px; border-radius: 6px; font-weight: 700; color: #38bdf8; font-size: 12px;")
+        layout.addWidget(self.lbl_dataset)
+
+        self.lbl_points_badge = QLabel("80 points • 10.0s rate")
+        self.lbl_points_badge.setStyleSheet("color: #94a3b8; font-size: 11px;")
+        layout.addWidget(self.lbl_points_badge)
+
+        layout.addStretch(1)
+
+        # Actions
+        btn_html = QPushButton("🌐 Web Dashboard")
+        btn_html.setObjectName("AccentGlowBtn")
+        btn_html.clicked.connect(self.on_export_html)
+        layout.addWidget(btn_html)
+
+        btn_snap = QPushButton("📸 Snap Charts")
+        btn_snap.clicked.connect(self.on_save_charts)
+        layout.addWidget(btn_snap)
+
+        return top_bar
+
+    # --------------------------------------------------------------------------
+    # HERO KPI CARDS
+    # --------------------------------------------------------------------------
+    def _build_hero_kpis(self) -> QWidget:
         container = QWidget()
         layout = QHBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
 
-        # Helper to create styled card
-        def make_card(title: str, val_id: str, sub_id: str, accent_color: str):
-            c = QFrame()
-            c.setObjectName("KpiCard")
-            c_lay = QVBoxLayout(c)
+        def make_kpi(title: str, val_attr: str, sub_attr: str, accent: str):
+            card = QFrame()
+            card.setObjectName("HeroCard")
+            c_lay = QVBoxLayout(card)
             c_lay.setContentsMargins(14, 12, 14, 12)
             c_lay.setSpacing(4)
 
-            top_bar = QFrame()
-            top_bar.setFixedHeight(3)
-            top_bar.setStyleSheet(f"background-color: {accent_color}; border-radius: 1px;")
-            c_lay.addWidget(top_bar)
+            stripe = QFrame()
+            stripe.setFixedHeight(3)
+            stripe.setStyleSheet(f"background-color: {accent}; border-radius: 1px;")
+            c_lay.addWidget(stripe)
 
-            lbl_title = QLabel(title)
-            lbl_title.setObjectName("KpiTitle")
-            c_lay.addWidget(lbl_title)
+            t = QLabel(title)
+            t.setObjectName("HeroTitle")
+            c_lay.addWidget(t)
 
-            lbl_val = QLabel("--")
-            lbl_val.setObjectName("KpiValue")
-            setattr(self, val_id, lbl_val)
-            c_lay.addWidget(lbl_val)
+            v = QLabel("--")
+            v.setObjectName("HeroValue")
+            setattr(self, val_attr, v)
+            c_lay.addWidget(v)
 
-            lbl_sub = QLabel("--")
-            lbl_sub.setObjectName("KpiSub")
-            setattr(self, sub_id, lbl_sub)
-            c_lay.addWidget(lbl_sub)
+            s = QLabel("--")
+            s.setObjectName("HeroSub")
+            setattr(self, sub_attr, s)
+            c_lay.addWidget(s)
 
-            return c
+            return card
 
-        layout.addWidget(make_card("Terminal Voltage", "kpi_v_val", "kpi_v_sub", "#00e5ff"))
-        layout.addWidget(make_card("Delivered Capacity", "kpi_cap_val", "kpi_cap_sub", "#10b981"))
-        layout.addWidget(make_card("Delivered Energy", "kpi_wh_val", "kpi_wh_sub", "#facc15"))
-        layout.addWidget(make_card("Current & Power", "kpi_ip_val", "kpi_ip_sub", "#fb923c"))
-        layout.addWidget(make_card("Cell Health & Grade", "kpi_health_val", "kpi_health_sub", "#a855f7"))
+        layout.addWidget(make_kpi("Terminal Voltage", "kpi_v_val", "kpi_v_sub", "#00e5ff"))
+        layout.addWidget(make_kpi("Delivered Capacity", "kpi_cap_val", "kpi_cap_sub", "#10b981"))
+        layout.addWidget(make_kpi("Delivered Energy", "kpi_wh_val", "kpi_wh_sub", "#facc15"))
+        layout.addWidget(make_kpi("Current & Power", "kpi_ip_val", "kpi_ip_sub", "#fb923c"))
+        layout.addWidget(make_kpi("Cell Health Grade", "kpi_health_val", "kpi_health_sub", "#a855f7"))
 
         return container
 
     # --------------------------------------------------------------------------
-    # TAB 1: TELEMETRY DASHBOARD (4 Synchronized Visualizations)
+    # PAGE 0: OVERVIEW COCKPIT
     # --------------------------------------------------------------------------
-    def _build_tab_dashboard(self) -> QWidget:
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(10, 10, 10, 10)
+    def _build_page_cockpit(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)
 
-        self.canvas_dash = DarkMplCanvas(widget, width=10, height=6)
-        layout.addWidget(self.canvas_dash)
-        return widget
+        self.canvas_cockpit = StudioMplCanvas(page, width=10, height=6)
+        layout.addWidget(self.canvas_cockpit)
+        return page
 
-    def _render_tab_dashboard(self):
+    def _render_page_cockpit(self):
         if not self.dataset:
             return
 
         df = self.dataset.df
         m = self.dataset.metrics
-        fig = self.canvas_dash.fig
+        fig = self.canvas_cockpit.fig
         fig.clear()
 
-        # 2x2 Grid of subplots
         gs = fig.add_gridspec(2, 2, hspace=0.46, wspace=0.30, top=0.92, bottom=0.10, left=0.07, right=0.93)
         ax1 = fig.add_subplot(gs[0, 0])
         ax2 = fig.add_subplot(gs[0, 1])
@@ -617,19 +699,19 @@ class ModernBatteryAnalyzer(QMainWindow):
         ax4 = fig.add_subplot(gs[1, 1])
 
         for ax in [ax1, ax2, ax3, ax4]:
-            self.canvas_dash.apply_dark_theme(ax)
+            self.canvas_cockpit.apply_studio_theme(ax)
 
         # 1. Voltage vs Time
-        ax1.plot(df["Time"], df["Voltage"], color="#00e5ff", linewidth=2.2, label="Voltage (V)")
+        ax1.plot(df["Time"], df["Voltage"], color="#00e5ff", linewidth=2.4, label="Voltage (V)")
         ax1.axhline(m.v_cutoff, color="#ef4444", linestyle="--", alpha=0.8, label=f"Cutoff ({m.v_cutoff:.2f}V)")
-        ax1.axhline(m.plateau_v_mean, color="#10b981", linestyle=":", alpha=0.6, label=f"Plateau Mean ({m.plateau_v_mean:.2f}V)")
+        ax1.axhline(m.plateau_v_mean, color="#10b981", linestyle=":", alpha=0.7, label=f"Plateau ({m.plateau_v_mean:.2f}V)")
         ax1.fill_between(df["Time"], df["Voltage"], m.v_cutoff, color="#00e5ff", alpha=0.08)
         ax1.set_title("Voltage vs Time (Discharge Profile)")
         ax1.set_xlabel("Time (s)")
         ax1.set_ylabel("Voltage (V)")
-        ax1.legend(loc="upper right", facecolor="#141b2d", edgecolor="#23304a", labelcolor="#cbd5e1", fontsize=8)
+        ax1.legend(loc="upper right", facecolor="#111728", edgecolor="#1e2942", labelcolor="#cbd5e1", fontsize=8)
 
-        # 2. Current & Power vs Time (Twin axes)
+        # 2. Dynamic Load Drain (Current & Power)
         ax2.plot(df["Time"], df["Current"], color="#fb923c", linewidth=2.0, label="Current (A)")
         ax2.set_title("Current & Power Drain vs Time")
         ax2.set_xlabel("Time (s)")
@@ -640,10 +722,10 @@ class ModernBatteryAnalyzer(QMainWindow):
         ax2_p.plot(df["Time"], df["Power"], color="#c084fc", linewidth=1.8, linestyle="-.", label="Power (W)")
         ax2_p.set_ylabel("Power (W)", color="#c084fc")
         ax2_p.tick_params(axis="y", labelcolor="#c084fc")
-        ax2_p.spines["right"].set_color("#23304a")
-        ax2_p.spines["left"].set_color("#23304a")
-        ax2_p.spines["top"].set_color("#23304a")
-        ax2_p.spines["bottom"].set_color("#23304a")
+        ax2_p.spines["right"].set_color("#1e2942")
+        ax2_p.spines["left"].set_color("#1e2942")
+        ax2_p.spines["top"].set_color("#1e2942")
+        ax2_p.spines["bottom"].set_color("#1e2942")
 
         # 3. Capacity & Energy Accumulation
         ax3.plot(df["Time"], df["Capacity_mAh"], color="#10b981", linewidth=2.0, label="Capacity (mAh)")
@@ -656,40 +738,39 @@ class ModernBatteryAnalyzer(QMainWindow):
         ax3_e.plot(df["Time"], df["Energy_Wh"], color="#facc15", linewidth=2.0, linestyle="--", label="Energy (Wh)")
         ax3_e.set_ylabel("Energy (Wh)", color="#facc15")
         ax3_e.tick_params(axis="y", labelcolor="#facc15")
-        ax3_e.spines["right"].set_color("#23304a")
-        ax3_e.spines["left"].set_color("#23304a")
-        ax3_e.spines["top"].set_color("#23304a")
-        ax3_e.spines["bottom"].set_color("#23304a")
+        ax3_e.spines["right"].set_color("#1e2942")
+        ax3_e.spines["left"].set_color("#1e2942")
+        ax3_e.spines["top"].set_color("#1e2942")
+        ax3_e.spines["bottom"].set_color("#1e2942")
 
-        # 4. Voltage vs Delivered Capacity (V vs Ah)
+        # 4. Definitive V vs Capacity
         ax4.plot(df["Capacity_Ah"], df["Voltage"], color="#38bdf8", linewidth=2.4)
         ax4.set_title("V vs Delivered Capacity (Definitive Curve)")
         ax4.set_xlabel("Delivered Capacity (Ah)")
         ax4.set_ylabel("Voltage (V)")
         ax4.scatter([df["Capacity_Ah"].iloc[0], df["Capacity_Ah"].iloc[-1]],
                     [df["Voltage"].iloc[0], df["Voltage"].iloc[-1]],
-                    color="#00e5ff", s=35, zorder=5)
+                    color="#00e5ff", s=40, zorder=5)
 
-        self.canvas_dash.draw()
+        self.canvas_cockpit.draw()
 
     # --------------------------------------------------------------------------
-    # TAB 2: ELECTROCHEMICAL CURVES
+    # PAGE 1: ELECTROCHEMICAL LAB
     # --------------------------------------------------------------------------
-    def _build_tab_electrochemistry(self) -> QWidget:
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(10, 10, 10, 10)
+    def _build_page_electrochemistry(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)
 
-        self.canvas_electro = DarkMplCanvas(widget, width=10, height=6)
+        self.canvas_electro = StudioMplCanvas(page, width=10, height=6)
         layout.addWidget(self.canvas_electro)
-        return widget
+        return page
 
-    def _render_tab_electrochemistry(self):
+    def _render_page_electrochemistry(self):
         if not self.dataset:
             return
 
         df = self.dataset.df
-        m = self.dataset.metrics
         fig = self.canvas_electro.fig
         fig.clear()
 
@@ -700,11 +781,10 @@ class ModernBatteryAnalyzer(QMainWindow):
         ax4 = fig.add_subplot(gs[1, 1])
 
         for ax in [ax1, ax2, ax3, ax4]:
-            self.canvas_electro.apply_dark_theme(ax)
+            self.canvas_electro.apply_studio_theme(ax)
 
         # 1. Discharge Stage Decomposition (V vs Ah)
         ax1.plot(df["Capacity_Ah"], df["Voltage"], color="#38bdf8", linewidth=2.5, label="Discharge Curve")
-        # Shaded regions
         ohmic_cap = df["Capacity_Ah"].iloc[min(2, len(df)-1)]
         knee_indices = np.where(df["Voltage"] <= 3.5)[0]
         knee_cap = df["Capacity_Ah"].iloc[knee_indices[0]] if len(knee_indices) > 0 else df["Capacity_Ah"].iloc[-1]
@@ -715,21 +795,20 @@ class ModernBatteryAnalyzer(QMainWindow):
         ax1.set_title("Discharge Stage Decomposition (V vs Ah)")
         ax1.set_xlabel("Delivered Capacity (Ah)")
         ax1.set_ylabel("Voltage (V)")
-        ax1.legend(loc="upper right", facecolor="#141b2d", edgecolor="#23304a", labelcolor="#cbd5e1", fontsize=8)
+        ax1.legend(loc="upper right", facecolor="#111728", edgecolor="#1e2942", labelcolor="#cbd5e1", fontsize=8)
 
         # 2. State of Charge (SoC %) vs Voltage (OCV-SoC curve)
         ax2.plot(df["Voltage"], df["SoC_pct"], color="#818cf8", linewidth=2.2)
         ax2.set_title("State of Charge (SoC %) vs Voltage")
         ax2.set_xlabel("Terminal Voltage (V)")
         ax2.set_ylabel("Estimated SoC (%)")
-        ax2.grid(True)
 
         # 3. Voltage Sag Rate (dV/dt) vs Time
         ax3.plot(df["Time"], np.abs(df["dV_dt_mV_s"]), color="#f43f5e", linewidth=1.8, label="|dV/dt|")
         ax3.set_title("Voltage Decay Velocity |dV/dt| (mV/s)")
         ax3.set_xlabel("Time (s)")
         ax3.set_ylabel("Sag Rate (mV/s)")
-        ax3.legend(loc="upper right", facecolor="#141b2d", edgecolor="#23304a", labelcolor="#cbd5e1", fontsize=8)
+        ax3.legend(loc="upper right", facecolor="#111728", edgecolor="#1e2942", labelcolor="#cbd5e1", fontsize=8)
 
         # 4. Instantaneous Power vs Voltage
         ax4.plot(df["Voltage"], df["Power"], color="#f59e0b", linewidth=2.0)
@@ -740,12 +819,12 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.canvas_electro.draw()
 
     # --------------------------------------------------------------------------
-    # TAB 3: DYNAMIC SIMULATION & PLAYBACK
+    # PAGE 2: CELL SIMULATOR & PLAYBACK
     # --------------------------------------------------------------------------
-    def _build_tab_simulation(self) -> QWidget:
-        widget = QWidget()
-        h_layout = QHBoxLayout(widget)
-        h_layout.setContentsMargins(12, 12, 12, 12)
+    def _build_page_simulation(self) -> QWidget:
+        page = QWidget()
+        h_layout = QHBoxLayout(page)
+        h_layout.setContentsMargins(0, 0, 0, 0)
         h_layout.setSpacing(14)
 
         # Left panel: Visual Battery Widget & Dynamic Gauge Box
@@ -757,11 +836,11 @@ class ModernBatteryAnalyzer(QMainWindow):
         lp_lay.setSpacing(10)
 
         lp_title = QLabel("PHYSICAL CELL TELEMETRY")
-        lp_title.setObjectName("KpiTitle")
+        lp_title.setObjectName("HeroTitle")
         lp_lay.addWidget(lp_title)
 
         # The Battery Graphic
-        self.battery_widget = BatteryLevelWidget()
+        self.battery_widget = BatteryCell3DWidget()
         lp_lay.addWidget(self.battery_widget, alignment=Qt.AlignCenter)
 
         # Live HUD Metric Grid
@@ -771,7 +850,7 @@ class ModernBatteryAnalyzer(QMainWindow):
         grid_lay.setContentsMargins(12, 10, 12, 10)
         grid_lay.setSpacing(7)
 
-        def make_hud_row(label: str, attr_name: str, unit: str):
+        def make_hud_row(label: str, attr_name: str):
             row = QHBoxLayout()
             l = QLabel(label)
             l.setStyleSheet("color: #94a3b8; font-size: 11px;")
@@ -783,13 +862,13 @@ class ModernBatteryAnalyzer(QMainWindow):
             row.addWidget(v)
             return row
 
-        grid_lay.addLayout(make_hud_row("Timestamp:", "hud_time", "s"))
-        grid_lay.addLayout(make_hud_row("Terminal Voltage:", "hud_volt", "V"))
-        grid_lay.addLayout(make_hud_row("Discharge Current:", "hud_curr", "A"))
-        grid_lay.addLayout(make_hud_row("Output Power:", "hud_pow", "W"))
-        grid_lay.addLayout(make_hud_row("Capacity Delivered:", "hud_cap", "mAh"))
-        grid_lay.addLayout(make_hud_row("Energy Delivered:", "hud_energy", "Wh"))
-        grid_lay.addLayout(make_hud_row("Dynamic Sag Rate:", "hud_sag", "mV/s"))
+        grid_lay.addLayout(make_hud_row("Timestamp:", "hud_time"))
+        grid_lay.addLayout(make_hud_row("Terminal Voltage:", "hud_volt"))
+        grid_lay.addLayout(make_hud_row("Discharge Current:", "hud_curr"))
+        grid_lay.addLayout(make_hud_row("Output Power:", "hud_pow"))
+        grid_lay.addLayout(make_hud_row("Capacity Delivered:", "hud_cap"))
+        grid_lay.addLayout(make_hud_row("Energy Delivered:", "hud_energy"))
+        grid_lay.addLayout(make_hud_row("Dynamic Sag Rate:", "hud_sag"))
 
         lp_lay.addWidget(grid_frame)
         lp_lay.addStretch(1)
@@ -802,14 +881,14 @@ class ModernBatteryAnalyzer(QMainWindow):
         rp_lay.setContentsMargins(12, 12, 12, 12)
         rp_lay.setSpacing(10)
 
-        # Canvas for tracking marker
-        self.canvas_sim = DarkMplCanvas(right_panel, width=7, height=4)
+        self.canvas_sim = StudioMplCanvas(right_panel, width=7, height=4)
         rp_lay.addWidget(self.canvas_sim, stretch=1)
 
         # Control Bar
         ctrl_box = QFrame()
-        ctrl_box.setStyleSheet("background: #0f172a; border-radius: 8px; padding: 10px;")
+        ctrl_box.setObjectName("HudFrame")
         ctrl_lay = QVBoxLayout(ctrl_box)
+        ctrl_lay.setContentsMargins(12, 10, 12, 10)
         ctrl_lay.setSpacing(8)
 
         # Slider row
@@ -836,14 +915,13 @@ class ModernBatteryAnalyzer(QMainWindow):
 
         self.btn_rewind = QPushButton("⏮ Reset")
         self.btn_rewind.setFixedSize(85, 34)
-        self.btn_rewind.setStyleSheet("background: #1e293b; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; font-weight: 600; font-size: 12px;")
+        self.btn_rewind.setStyleSheet("background: #1a2236; color: #f8fafc; border: 1px solid #2d3b59; border-radius: 6px; font-weight: 600; font-size: 12px;")
         self.btn_rewind.clicked.connect(self._rewind_playback)
 
         btn_row.addWidget(self.btn_play)
         btn_row.addWidget(self.btn_rewind)
         btn_row.addSpacing(16)
 
-        # Speed selector
         btn_row.addWidget(QLabel("Speed:"))
         self.combo_speed = QComboBox()
         self.combo_speed.addItems(["1x Real-Time", "2x Faster", "5x High Speed", "10x Ultra Speed"])
@@ -855,10 +933,9 @@ class ModernBatteryAnalyzer(QMainWindow):
         rp_lay.addWidget(ctrl_box)
 
         h_layout.addWidget(right_panel, stretch=1)
-        return widget
+        return page
 
-    def _render_tab_simulation_static(self):
-        """Pre-draws the base curve on the simulation plot."""
+    def _render_page_simulation_static(self):
         if not self.dataset:
             return
 
@@ -867,9 +944,9 @@ class ModernBatteryAnalyzer(QMainWindow):
         fig.clear()
 
         self.sim_ax = fig.add_subplot(1, 1, 1)
-        self.canvas_sim.apply_dark_theme(self.sim_ax)
+        self.canvas_sim.apply_studio_theme(self.sim_ax)
 
-        self.sim_ax.plot(df["Time"], df["Voltage"], color="#334155", linewidth=2.0, label="Discharge Path")
+        self.sim_ax.plot(df["Time"], df["Voltage"], color="#1e2942", linewidth=2.0, label="Discharge Path")
         self.sim_line_active, = self.sim_ax.plot([], [], color="#00e5ff", linewidth=2.5, label="Elapsed")
         self.sim_marker, = self.sim_ax.plot([], [], marker="o", markersize=9, color="#00e5ff",
                                             markeredgecolor="#ffffff", markeredgewidth=2)
@@ -883,7 +960,6 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.canvas_sim.draw()
 
     def _update_simulation_point(self, idx: int):
-        """Updates the interactive gauges and cursor to point idx."""
         if not self.dataset:
             return
 
@@ -916,10 +992,10 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.sim_slider.setValue(idx)
         self.sim_slider.blockSignals(False)
 
-        # Update Battery Widget
+        # Update 3D Battery
         self.battery_widget.set_values(soc, v)
 
-        # Update Plot Marker
+        # Update Marker
         if hasattr(self, "sim_line_active"):
             times_elapsed = df["Time"].iloc[:idx + 1]
             volts_elapsed = df["Voltage"].iloc[:idx + 1]
@@ -962,44 +1038,42 @@ class ModernBatteryAnalyzer(QMainWindow):
             self.play_timer.setInterval(max(10, 100 // self.playback_speed))
 
     # --------------------------------------------------------------------------
-    # TAB 4: DATA INSPECTOR & TABLE
+    # PAGE 3: TELEMETRY MATRIX (TABLE)
     # --------------------------------------------------------------------------
-    def _build_tab_inspector(self) -> QWidget:
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(12, 12, 12, 12)
+    def _build_page_matrix(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
 
-        # Filter bar
+        # Search Bar
         top_bar = QHBoxLayout()
-        search_lbl = QLabel("Search / Filter Data:")
+        search_lbl = QLabel("Search Matrix:")
         search_lbl.setStyleSheet("color: #94a3b8; font-size: 12px; font-weight: 600;")
         top_bar.addWidget(search_lbl)
 
         self.edit_filter = QLineEdit()
-        self.edit_filter.setPlaceholderText("Filter rows by typing (e.g. 4.1 or 3.2)...")
+        self.edit_filter.setPlaceholderText("Filter points by typing value (e.g. 4.1 or 3.2)...")
         self.edit_filter.textChanged.connect(self._filter_table)
         top_bar.addWidget(self.edit_filter, stretch=1)
 
-        self.btn_export_csv = QPushButton("💾 Export Table to CSV")
+        self.btn_export_csv = QPushButton("💾 Export Filtered CSV")
         self.btn_export_csv.clicked.connect(self.on_export_table_csv)
         top_bar.addWidget(self.btn_export_csv)
 
         layout.addLayout(top_bar)
 
-        # Table
         self.table_widget = QTableWidget()
         self.table_widget.setAlternatingRowColors(True)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table_widget.verticalHeader().setVisible(False)
         layout.addWidget(self.table_widget, stretch=1)
 
-        # Summary Statistics Bar
-        self.lbl_stats = QLabel("Points: 0 • Min Voltage: -- • Max Voltage: --")
+        self.lbl_stats = QLabel("Points: 0")
         self.lbl_stats.setStyleSheet("color: #94a3b8; font-size: 11px;")
         layout.addWidget(self.lbl_stats)
 
-        return widget
+        return page
 
     def _populate_table(self):
         if not self.dataset:
@@ -1032,8 +1106,8 @@ class ModernBatteryAnalyzer(QMainWindow):
 
         m = self.dataset.metrics
         self.lbl_stats.setText(
-            f"Total Points: {m.data_points}  |  Sample Rate: {m.sample_rate_s:.1f}s  |  "
-            f"V range: [{m.v_min:.2f}V - {m.v_max:.2f}V]  |  I mean: {m.i_mean:.2f}A  |  P mean: {m.p_mean:.2f}W"
+            f"Total Matrix Points: {m.data_points}  |  Sample Rate: {m.sample_rate_s:.1f}s  |  "
+            f"Voltage: [{m.v_min:.2f}V - {m.v_max:.2f}V]  |  Current Mean: {m.i_mean:.2f}A  |  Power Mean: {m.p_mean:.2f}W"
         )
 
     def _filter_table(self, query: str):
@@ -1053,22 +1127,21 @@ class ModernBatteryAnalyzer(QMainWindow):
             self.table_widget.setRowHidden(r, not match)
 
     # --------------------------------------------------------------------------
-    # TAB 5: DIAGNOSTIC REPORT
+    # PAGE 4: DIAGNOSTIC CERTIFICATE
     # --------------------------------------------------------------------------
-    def _build_tab_report(self) -> QWidget:
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(14, 14, 14, 14)
+    def _build_page_report(self) -> QWidget:
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(12)
 
-        # Top action strip
         top_strip = QHBoxLayout()
-        title_rep = QLabel("BATTERY TEST CERTIFICATION & ENGINEERING AUDIT")
+        title_rep = QLabel("BATTERY PERFORMANCE AUDIT & HEALTH CERTIFICATE")
         title_rep.setStyleSheet("font-size: 13px; font-weight: 700; color: #38bdf8;")
         top_strip.addWidget(title_rep)
         top_strip.addStretch(1)
 
-        btn_copy = QPushButton("📋 Copy Report")
+        btn_copy = QPushButton("📋 Copy Certificate")
         btn_copy.clicked.connect(self._copy_report_to_clipboard)
         top_strip.addWidget(btn_copy)
 
@@ -1077,20 +1150,19 @@ class ModernBatteryAnalyzer(QMainWindow):
         top_strip.addWidget(btn_save_txt)
 
         btn_open_html = QPushButton("🌐 View in Browser (HTML)")
-        btn_open_html.setObjectName("PrimaryBtn")
+        btn_open_html.setObjectName("PrimaryGlowBtn")
         btn_open_html.clicked.connect(self.on_export_html)
         top_strip.addWidget(btn_open_html)
 
         layout.addLayout(top_strip)
 
-        # Formatted report view
         self.report_text = QLabel()
         self.report_text.setTextFormat(Qt.MarkdownText)
         self.report_text.setStyleSheet("""
-            background-color: #101626;
-            border: 1px solid #23304a;
+            background-color: #0b0f1a;
+            border: 1px solid #1e2942;
             border-radius: 8px;
-            padding: 20px;
+            padding: 22px;
             color: #f8fafc;
             font-size: 13px;
             line-height: 1.6;
@@ -1102,19 +1174,19 @@ class ModernBatteryAnalyzer(QMainWindow):
         scroll.setWidget(self.report_text)
 
         layout.addWidget(scroll, stretch=1)
-        return widget
+        return page
 
-    def _render_tab_report(self):
+    def _render_page_report(self):
         if not self.dataset:
             return
 
         m = self.dataset.metrics
         name = self.dataset.source_name
 
-        report_md = f"""# 🔋 VOLTIX PRO Electrochemical Test Report
-**Dataset File:** `{name}`  
-**Test Date:** `{time.strftime('%Y-%m-%d %H:%M:%S')}`  
-**Evaluation Rating:** **<span style="color: #00e5ff;">{m.cell_grade}</span>**  
+        report_md = f"""# 🔋 VOLTIX STUDIO Performance Audit
+**Dataset Source:** `{name}`  
+**Audit Timestamp:** `{time.strftime('%Y-%m-%d %H:%M:%S')}`  
+**Diagnostic Grade:** **<span style="color: #00e5ff;">{m.cell_grade}</span>**  
 **Executive Summary:** {m.cell_status_summary}
 
 ---
@@ -1164,12 +1236,12 @@ class ModernBatteryAnalyzer(QMainWindow):
     def _copy_report_to_clipboard(self):
         text = self.report_text.text()
         QApplication.clipboard().setText(text)
-        QMessageBox.information(self, "Copied", "Engineering report copied to system clipboard!")
+        QMessageBox.information(self, "Copied", "Audit report copied to clipboard!")
 
     def _save_report_txt(self):
         if not self.dataset:
             return
-        path, _ = QFileDialog.getSaveFileName(self, "Save Test Report", "battery_report.txt", "Text Files (*.txt)")
+        path, _ = QFileDialog.getSaveFileName(self, "Save Audit Report", "battery_audit_report.txt", "Text Files (*.txt)")
         if path:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(self.report_text.text())
@@ -1179,19 +1251,18 @@ class ModernBatteryAnalyzer(QMainWindow):
     # DATASET LOADING & RECALCULATION
     # --------------------------------------------------------------------------
     def load_dataset(self, file_path: str):
-        """Loads and processes a new battery dataset."""
         try:
             nom_cap = self.spin_capacity.value()
             cutoff = self.spin_cutoff.value()
             self.dataset = load_and_analyze(file_path, nominal_capacity_ah=nom_cap, cutoff_voltage=cutoff)
             self._update_all_views()
             self.lbl_dataset.setText(f"📁 {os.path.basename(file_path)}")
-            self.status_bar_label.setText(f"Dataset '{os.path.basename(file_path)}' loaded • {self.dataset.metrics.data_points} points analyzed.")
+            self.lbl_points_badge.setText(f"{self.dataset.metrics.data_points} points • {self.dataset.metrics.sample_rate_s:.1f}s rate")
+            self.status_bar_label.setText(f"● Loaded '{os.path.basename(file_path)}' • {self.dataset.metrics.data_points} points analyzed.")
         except Exception as e:
             QMessageBox.critical(self, "Load Error", f"Failed to load dataset:\n{str(e)}")
 
     def _recalc_with_params(self):
-        """Recomputes with updated spinbox parameters."""
         if not self.dataset:
             return
         self.dataset.nominal_capacity_ah = self.spin_capacity.value()
@@ -1200,7 +1271,6 @@ class ModernBatteryAnalyzer(QMainWindow):
         self._update_all_views()
 
     def _on_chem_changed(self, idx: int):
-        """Presets nominal values based on selected battery chemistry."""
         presets = [
             (2.0, 3.20),  # Li-ion NMC
             (2.0, 2.50),  # LFP
@@ -1218,13 +1288,12 @@ class ModernBatteryAnalyzer(QMainWindow):
         self._recalc_with_params()
 
     def _update_all_views(self):
-        """Refreshes all cards, plots, and tables."""
         if not self.dataset:
             return
 
         m = self.dataset.metrics
 
-        # 1. Update KPI Cards
+        # 1. Update Hero Cards
         self.kpi_v_val.setText(f"{m.v_initial:.2f}V → {m.v_final:.2f}V")
         self.kpi_v_sub.setText(f"Drop: Δ{m.v_drop:.2f}V  |  Avg: {m.v_avg_discharge:.3f}V")
 
@@ -1241,21 +1310,21 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.kpi_health_sub.setText(f"Median IR: {m.rdc_median_mohm:.0f} mΩ | Final: {m.rdc_final_mohm:.0f} mΩ")
 
         # 2. Render Plots
-        self._render_tab_dashboard()
-        self._render_tab_electrochemistry()
+        self._render_page_cockpit()
+        self._render_page_electrochemistry()
 
         # 3. Setup Simulation Slider & Canvas
         n = len(self.dataset.df)
         self.sim_slider.setRange(0, n - 1)
         self.lbl_sim_time_end.setText(f"{m.duration_s:.1f} s")
-        self._render_tab_simulation_static()
+        self._render_page_simulation_static()
         self._update_simulation_point(0)
 
-        # 4. Populate Inspector Table
+        # 4. Populate Matrix Table
         self._populate_table()
 
         # 5. Render Report
-        self._render_tab_report()
+        self._render_page_report()
 
     # --------------------------------------------------------------------------
     # ACTIONS: OPEN FILE, EXPORT HTML, SAVE SNAPSHOTS
@@ -1284,18 +1353,18 @@ class ModernBatteryAnalyzer(QMainWindow):
     def on_save_charts(self):
         if not self.dataset:
             return
-        path, _ = QFileDialog.getSaveFileName(self, "Save Dashboard Snapshot", "battery_dashboard.png", "PNG Image (*.png);;PDF (*.pdf)")
+        path, _ = QFileDialog.getSaveFileName(self, "Save Dashboard Snapshot", "battery_cockpit.png", "PNG Image (*.png);;PDF (*.pdf)")
         if path:
-            self.canvas_dash.fig.savefig(path, dpi=300, facecolor=self.canvas_dash.fig.get_facecolor(), bbox_inches="tight")
-            QMessageBox.information(self, "Saved", f"Dashboard snapshot saved to:\n{path}")
+            self.canvas_cockpit.fig.savefig(path, dpi=300, facecolor=self.canvas_cockpit.fig.get_facecolor(), bbox_inches="tight")
+            QMessageBox.information(self, "Saved", f"Cockpit snapshot saved to:\n{path}")
 
     def on_export_table_csv(self):
         if not self.dataset:
             return
-        path, _ = QFileDialog.getSaveFileName(self, "Export Computed Telemetry", "battery_telemetry_analyzed.csv", "CSV Files (*.csv)")
+        path, _ = QFileDialog.getSaveFileName(self, "Export Computed Telemetry", "battery_telemetry_matrix.csv", "CSV Files (*.csv)")
         if path:
             self.dataset.df.to_csv(path, index=False)
-            QMessageBox.information(self, "Saved", f"Full telemetry table exported to:\n{path}")
+            QMessageBox.information(self, "Saved", f"Full telemetry matrix exported to:\n{path}")
 
 
 # ==============================================================================
@@ -1303,7 +1372,7 @@ class ModernBatteryAnalyzer(QMainWindow):
 # ==============================================================================
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Voltix Pro Modern Battery Analyzer")
+    parser = argparse.ArgumentParser(description="Voltix Studio Modern Battery Analyzer")
     parser.add_argument("file", nargs="?", default="Battery_data.csv", help="CSV dataset file path")
     parser.add_argument("--cli", action="store_true", help="Run in terminal CLI mode without GUI")
     parser.add_argument("--html", action="store_true", help="Generate interactive HTML report directly")
@@ -1327,7 +1396,7 @@ def main():
         battery = load_and_analyze(args.file, nominal_capacity_ah=args.capacity, cutoff_voltage=args.cutoff)
         m = battery.metrics
         print("=" * 60)
-        print("      [VOLTIX PRO] - BATTERY PERFORMANCE AUDIT")
+        print("      [VOLTIX STUDIO] - BATTERY PERFORMANCE AUDIT")
         print("=" * 60)
         print(f"File: {args.file} | Grade: {m.cell_grade}")
         print(f"Voltage: {m.v_initial:.3f}V -> {m.v_final:.3f}V (Drop: {m.v_drop:.3f}V)")
@@ -1340,10 +1409,10 @@ def main():
         print("=" * 60)
         return
 
-    # Enable High DPI scaling and launch GUI
+    # Enable High DPI scaling and launch Studio GUI
     QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     app = QApplication(sys.argv)
-    app.setStyleSheet(MODERN_QSS)
+    app.setStyleSheet(STUDIO_QSS)
 
     csv_to_open = args.file if os.path.exists(args.file) else ("battery_data.csv" if os.path.exists("battery_data.csv") else args.file)
     win = ModernBatteryAnalyzer(initial_csv=csv_to_open)
