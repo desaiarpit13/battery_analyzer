@@ -1,6 +1,7 @@
 """
-VOLTIX STUDIO // Modern Battery Analyzer & Electrochemical Telemetry Suite
-Next-Generation UI with Studio Sidebar Navigation, Real-Time HUD, and Telemetry Lab.
+VOLTIX PRO // Neo-Brutalist Battery Analyzer & Electrochemical Telemetry Suite
+High-Contrast Neo-Brutalist Workstation UI with Unblurred Hard Offset Drop Shadows,
+Vibrant Accent Color-Blocking, Bold Outlines, Dynamic Tactile Shadows, and Physical HUD.
 """
 
 import sys
@@ -15,7 +16,8 @@ from PySide6.QtWidgets import (
     QLabel, QPushButton, QComboBox, QDoubleSpinBox, QFileDialog,
     QStackedWidget, QTableWidget, QTableWidgetItem, QHeaderView,
     QSlider, QProgressBar, QFrame, QSplitter, QMessageBox,
-    QScrollArea, QLineEdit, QSizePolicy, QButtonGroup
+    QScrollArea, QLineEdit, QSizePolicy, QButtonGroup,
+    QGraphicsDropShadowEffect
 )
 from PySide6.QtCore import Qt, QTimer, Signal, Slot, QSize
 from PySide6.QtGui import (
@@ -33,208 +35,271 @@ from battery_engine import BatteryDataset, load_and_analyze, export_html_report,
 
 
 # ==============================================================================
-# NEXT-GEN STUDIO DARK CYBER THEME (QSS)
+# HARD OFFSET SHADOW HELPERS & BRUTALIST CONTROLS
 # ==============================================================================
-STUDIO_QSS = """
-/* Global Window */
+def apply_brutalist_shadow(widget: QWidget, offset: int = 5, color: str = "#000000"):
+    """Applies a razor-sharp, unblurred hard offset drop shadow (Neo-Brutalism signature)."""
+    shadow = QGraphicsDropShadowEffect(widget)
+    shadow.setBlurRadius(0)
+    shadow.setOffset(offset, offset)
+    shadow.setColor(QColor(color))
+    widget.setGraphicsEffect(shadow)
+    return shadow
+
+
+class BrutalistButton(QPushButton):
+    """Tactile Neo-Brutalist button with an unblurred hard offset shadow that physically depresses on click."""
+
+    def __init__(self, text: str = "", parent=None, offset: int = 4):
+        super().__init__(text, parent)
+        self.default_offset = offset
+        self.shadow = QGraphicsDropShadowEffect(self)
+        self.shadow.setBlurRadius(0)
+        self.shadow.setOffset(offset, offset)
+        self.shadow.setColor(QColor("#000000"))
+        self.setGraphicsEffect(self.shadow)
+
+    def mousePressEvent(self, event):
+        self.shadow.setOffset(1, 1)
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.shadow.setOffset(self.default_offset, self.default_offset)
+        super().mouseReleaseEvent(event)
+
+
+class BrutalistNavButton(QPushButton):
+    """Sidebar navigation button with hard offset shadow and active depressed state."""
+
+    def __init__(self, text: str = "", parent=None):
+        super().__init__(text, parent)
+        self.setProperty("class", "NavButton")
+        self.setCheckable(True)
+        self.shadow = QGraphicsDropShadowEffect(self)
+        self.shadow.setBlurRadius(0)
+        self.shadow.setOffset(4, 4)
+        self.shadow.setColor(QColor("#000000"))
+        self.setGraphicsEffect(self.shadow)
+        self.toggled.connect(self._on_toggled)
+
+    def _on_toggled(self, checked: bool):
+        if checked:
+            self.shadow.setOffset(1, 1)
+        else:
+            self.shadow.setOffset(4, 4)
+
+
+# ==============================================================================
+# NEO-BRUTALIST THEME (QSS)
+# ==============================================================================
+NEOBRUTALISM_QSS = """
+/* Global Canvas / Window */
 QMainWindow, QWidget#MainRoot {
-    background-color: #070a12;
-    color: #f1f5f9;
+    background-color: #f4efe6;
+    color: #000000;
     font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', Roboto, sans-serif;
 }
 
-/* Sidebar */
+/* Sidebar Rail */
 QFrame#Sidebar {
-    background-color: #0d121f;
-    border-right: 1px solid #1a233a;
-    min-width: 240px;
-    max-width: 250px;
+    background-color: #fffdf8;
+    border-right: 3px solid #000000;
+    min-width: 250px;
+    max-width: 260px;
 }
 
 /* Sidebar Navigation Buttons */
 QPushButton.NavButton {
-    background-color: transparent;
-    color: #94a3b8;
-    border: none;
-    border-radius: 8px;
+    background-color: #ffffff;
+    color: #000000;
+    border: 2.5px solid #000000;
+    border-radius: 6px;
     padding: 10px 14px;
     text-align: left;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 800;
+    margin-bottom: 3px;
 }
 QPushButton.NavButton:hover {
-    background-color: rgba(255, 255, 255, 0.04);
-    color: #f8fafc;
+    background-color: #fef08a;
+    color: #000000;
 }
 QPushButton.NavButton:checked {
-    background-color: rgba(0, 229, 255, 0.12);
-    color: #00e5ff;
-    border-left: 3px solid #00e5ff;
-    font-weight: 700;
+    background-color: #ffe600;
+    color: #000000;
+    border: 3px solid #000000;
+    font-weight: 900;
 }
 
 /* Cards & Containers */
 QFrame#TopNavBar, QFrame#HeroCard, QFrame#PanelCard, QFrame#SimCard, QFrame#SidebarCard {
-    background-color: #111728;
-    border: 1px solid #1e2942;
-    border-radius: 12px;
+    background-color: #ffffff;
+    border: 2.5px solid #000000;
+    border-radius: 8px;
 }
 QFrame#HeroCard {
-    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #141b2f, stop:1 #0f1526);
-    border: 1px solid #222f4c;
+    background-color: #ffffff;
+    border: 2.5px solid #000000;
 }
 QFrame#HeroCard:hover {
-    border: 1px solid #38bdf8;
-    background-color: #162038;
+    background-color: #ffffff;
 }
 
 /* Labels & Typography */
 QLabel {
-    color: #f8fafc;
+    color: #000000;
 }
 QLabel#BrandTitle {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 900;
-    color: #00e5ff;
-    letter-spacing: 0.8px;
+    color: #000000;
+    letter-spacing: 0.5px;
 }
 QLabel#MutedLabel {
-    color: #64748b;
+    color: #1e293b;
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 QLabel#HeroTitle {
-    color: #94a3b8;
+    color: #000000;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.6px;
 }
 QLabel#HeroValue {
-    color: #f8fafc;
-    font-size: 21px;
-    font-weight: 800;
+    color: #000000;
+    font-size: 22px;
+    font-weight: 900;
 }
 QLabel#HeroSub {
-    color: #64748b;
+    color: #334155;
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 700;
 }
 
 /* Buttons */
 QPushButton {
-    background-color: #1a2236;
-    color: #f1f5f9;
-    border: 1px solid #2d3b59;
-    border-radius: 7px;
+    background-color: #ffffff;
+    color: #000000;
+    border: 2.5px solid #000000;
+    border-radius: 6px;
     padding: 7px 14px;
-    font-weight: 600;
+    font-weight: 800;
     font-size: 12px;
 }
 QPushButton:hover {
-    background-color: #263352;
-    border: 1px solid #38bdf8;
-    color: #38bdf8;
+    background-color: #fef08a;
+    color: #000000;
 }
 QPushButton:pressed {
-    background-color: #0d121f;
+    background-color: #e2e8f0;
 }
 QPushButton#PrimaryGlowBtn {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #00d2ff, stop:1 #3a7bd5);
-    color: #ffffff;
-    border: none;
-    font-weight: 700;
-    border-radius: 7px;
+    background-color: #ffe600;
+    color: #000000;
+    border: 2.5px solid #000000;
+    font-weight: 900;
+    border-radius: 6px;
 }
 QPushButton#PrimaryGlowBtn:hover {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #00e5ff, stop:1 #4a8bf5);
-    color: #ffffff;
+    background-color: #facc15;
+    color: #000000;
 }
 QPushButton#AccentGlowBtn {
-    background-color: rgba(99, 102, 241, 0.15);
-    color: #a5b4fc;
-    border: 1px solid #4f46e5;
-    border-radius: 7px;
-    font-weight: 600;
+    background-color: #00f0ff;
+    color: #000000;
+    border: 2.5px solid #000000;
+    border-radius: 6px;
+    font-weight: 900;
 }
 QPushButton#AccentGlowBtn:hover {
-    background-color: rgba(99, 102, 241, 0.3);
-    color: #e0e7ff;
+    background-color: #38bdf8;
+    color: #000000;
 }
 
 /* Inputs & Combos */
 QComboBox, QDoubleSpinBox, QLineEdit {
-    background-color: #0a0f1d;
-    border: 1px solid #23304d;
+    background-color: #ffffff;
+    border: 2px solid #000000;
     border-radius: 6px;
     padding: 6px 10px;
-    color: #f8fafc;
+    color: #000000;
     font-size: 12px;
+    font-weight: 700;
 }
 QComboBox:focus, QDoubleSpinBox:focus, QLineEdit:focus {
-    border: 1px solid #00e5ff;
+    background-color: #fef9c3;
+    border: 2.5px solid #000000;
 }
 QComboBox::drop-down {
     border: none;
     padding-right: 8px;
 }
 QComboBox QAbstractItemView {
-    background-color: #111728;
-    border: 1px solid #2d3b59;
-    color: #f8fafc;
-    selection-background-color: #1e293b;
-    selection-color: #00e5ff;
+    background-color: #ffffff;
+    border: 2.5px solid #000000;
+    color: #000000;
+    selection-background-color: #ffe600;
+    selection-color: #000000;
+    font-weight: 700;
 }
 
 /* Table Widget */
 QTableWidget {
-    background-color: #0b0f1a;
-    border: 1px solid #1e2942;
+    background-color: #ffffff;
+    border: 2.5px solid #000000;
     border-radius: 8px;
-    gridline-color: #162035;
-    color: #f8fafc;
+    gridline-color: #cbd5e1;
+    color: #000000;
     font-size: 12px;
+    font-weight: 600;
 }
 QHeaderView::section {
-    background-color: #111728;
-    color: #94a3b8;
-    padding: 7px 10px;
-    border: 1px solid #1a233a;
-    font-weight: 700;
+    background-color: #ffe600;
+    color: #000000;
+    padding: 8px 10px;
+    border: 1px solid #000000;
+    font-weight: 900;
+    font-size: 12px;
 }
 QTableWidget::item:selected {
-    background-color: rgba(0, 229, 255, 0.15);
-    color: #00e5ff;
+    background-color: #00f0ff;
+    color: #000000;
 }
 
 /* ScrollBars */
 QScrollBar:vertical {
-    background: #070a12;
-    width: 7px;
+    background: #f1efe9;
+    border: 1.5px solid #000000;
+    width: 9px;
     margin: 0px;
-    border-radius: 3px;
+    border-radius: 0px;
 }
 QScrollBar::handle:vertical {
-    background: #23304d;
+    background: #000000;
     min-height: 20px;
-    border-radius: 3px;
+    border-radius: 0px;
 }
 QScrollBar::handle:vertical:hover {
-    background: #38bdf8;
+    background: #ffe600;
 }
 QScrollBar:horizontal {
-    background: #070a12;
-    height: 7px;
+    background: #f1efe9;
+    border: 1.5px solid #000000;
+    height: 9px;
     margin: 0px;
-    border-radius: 3px;
+    border-radius: 0px;
 }
 QScrollBar::handle:horizontal {
-    background: #23304d;
+    background: #000000;
     min-width: 20px;
-    border-radius: 3px;
+    border-radius: 0px;
 }
 QScrollBar::handle:horizontal:hover {
-    background: #38bdf8;
+    background: #ffe600;
 }
 QScrollBar::add-line, QScrollBar::sub-line {
     background: none;
@@ -243,78 +308,82 @@ QScrollBar::add-line, QScrollBar::sub-line {
 
 /* Slider */
 QSlider::groove:horizontal {
-    border: 1px solid #23304d;
-    height: 6px;
-    background: #0a0f1d;
-    border-radius: 3px;
+    border: 2.5px solid #000000;
+    height: 8px;
+    background: #ffffff;
+    border-radius: 4px;
 }
 QSlider::sub-page:horizontal {
-    background: #00e5ff;
-    border-radius: 3px;
+    background: #ffe600;
+    border: 2.5px solid #000000;
+    border-radius: 4px;
 }
 QSlider::handle:horizontal {
-    background: #f8fafc;
-    border: 2px solid #00e5ff;
-    width: 14px;
-    margin-top: -5px;
-    margin-bottom: -5px;
-    border-radius: 7px;
+    background: #000000;
+    border: 2px solid #000000;
+    width: 16px;
+    margin-top: -6px;
+    margin-bottom: -6px;
+    border-radius: 8px;
 }
 QSlider::handle:horizontal:hover {
-    background: #00e5ff;
+    background: #ffe600;
 }
 
 /* HUD Frame */
 QFrame#HudFrame {
-    background-color: #0a0f1d;
-    border: 1px solid #1e2942;
-    border-radius: 8px;
+    background-color: #f8fafc;
+    border: 2px solid #000000;
+    border-radius: 6px;
 }
 QFrame#HudFrame QLabel {
     border: none;
     background: transparent;
 }
 """
+STUDIO_QSS = NEOBRUTALISM_QSS  # Backwards compatibility alias
 
 
 # ==============================================================================
-# HIGH-DEFINITION DARK MATPLOTLIB CANVAS
+# HIGH-DEFINITION NEO-BRUTALIST MATPLOTLIB CANVAS
 # ==============================================================================
 class StudioMplCanvas(FigureCanvas):
-    """Reusable high-resolution Matplotlib canvas with custom dark studio aesthetic."""
+    """Reusable high-resolution Matplotlib canvas with custom Neo-Brutalist aesthetic."""
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor="#0b0f1a")
+        self.fig = Figure(figsize=(width, height), dpi=dpi, facecolor="#ffffff")
         super().__init__(self.fig)
         self.setParent(parent)
-        self.setStyleSheet("background-color: #0b0f1a; border-radius: 8px;")
+        self.setStyleSheet("background-color: #ffffff; border: 2.5px solid #000000; border-radius: 8px;")
 
     def apply_studio_theme(self, ax):
-        """Applies a crisp dark engineering theme to an axis."""
-        ax.set_facecolor("#0e1526")
-        ax.tick_params(colors="#94a3b8", labelsize=9, which="both")
-        ax.xaxis.label.set_color("#cbd5e1")
-        ax.yaxis.label.set_color("#cbd5e1")
-        ax.title.set_color("#f8fafc")
+        """Applies a crisp high-contrast Neo-Brutalist engineering theme to an axis."""
+        ax.set_facecolor("#fafaf9")
+        ax.tick_params(colors="#000000", labelsize=9, which="both")
+        ax.xaxis.label.set_color("#000000")
+        ax.xaxis.label.set_fontweight("bold")
+        ax.yaxis.label.set_color("#000000")
+        ax.yaxis.label.set_fontweight("bold")
+        ax.title.set_color("#000000")
         ax.title.set_fontsize(11)
         ax.title.set_fontweight("bold")
         for spine in ax.spines.values():
-            spine.set_color("#1e2942")
-            spine.set_linewidth(1.0)
-        ax.grid(True, linestyle="--", alpha=0.25, color="#334155")
+            spine.set_color("#000000")
+            spine.set_linewidth(2.0)
+        ax.grid(True, linestyle="--", alpha=0.5, color="#cbd5e1")
 
 
 # ==============================================================================
-# PHYSICAL CELL VISUAL GAUGE (3D-STYLED GRAPHIC)
+# PHYSICAL CELL VISUAL GAUGE (NEO-BRUTALIST HARD SHADOW GRAPHIC)
 # ==============================================================================
 class BatteryCell3DWidget(QWidget):
-    """Futuristic 3D-styled cross-section battery cell with fluid level depletion."""
+    """Neo-Brutalist high-contrast cross-section battery cell with fluid level depletion and hard offset shadows."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.soc_pct = 100.0
         self.voltage = 4.20
-        self.setFixedSize(160, 160)
+        self.setFixedSize(164, 164)
 
     def set_values(self, soc_pct: float, voltage: float):
         self.soc_pct = max(0.0, min(100.0, soc_pct))
@@ -329,22 +398,31 @@ class BatteryCell3DWidget(QWidget):
         h = self.height()
 
         # Terminal cap at top
-        cap_w = 34
-        cap_h = 7
+        cap_w = 36
+        cap_h = 8
         cap_x = (w - cap_w) // 2
         cap_y = 6
-        painter.setBrush(QBrush(QColor("#475569")))
-        painter.setPen(QPen(QColor("#64748b"), 1))
+
+        # Terminal cap hard offset shadow (4px offset)
+        painter.fillRect(cap_x + 4, cap_y + 4, cap_w, cap_h, QColor("#000000"))
+        # Terminal cap body
+        painter.setBrush(QBrush(QColor("#ffe600")))
+        painter.setPen(QPen(QColor("#000000"), 2.5))
         painter.drawRoundedRect(cap_x, cap_y, cap_w, cap_h, 3, 3)
 
         # Outer battery cylinder
         body_x = 24
-        body_y = 14
+        body_y = 15
         body_w = w - 48
-        body_h = h - 42
-        painter.setBrush(QBrush(QColor("#080c16")))
-        painter.setPen(QPen(QColor("#1e2942"), 2))
-        painter.drawRoundedRect(body_x, body_y, body_w, body_h, 10, 10)
+        body_h = h - 48
+
+        # Hard offset unblurred shadow (6px down, 6px right)
+        painter.fillRect(body_x + 6, body_y + 6, body_w, body_h, QColor("#000000"))
+
+        # Cylinder white background
+        painter.setBrush(QBrush(QColor("#ffffff")))
+        painter.setPen(QPen(QColor("#000000"), 3.0))
+        painter.drawRoundedRect(body_x, body_y, body_w, body_h, 8, 8)
 
         # Fluid Level
         fill_margin = 5
@@ -356,49 +434,63 @@ class BatteryCell3DWidget(QWidget):
 
         if fill_h > 2:
             if self.soc_pct > 50:
-                col_top = QColor("#00e5ff")
-                col_bot = QColor("#10b981")
+                col = QColor("#00f076")  # Vivid Lime
             elif self.soc_pct > 20:
-                col_top = QColor("#facc15")
-                col_bot = QColor("#f59e0b")
+                col = QColor("#ffe600")  # Electric Yellow
             else:
-                col_top = QColor("#f87171")
-                col_bot = QColor("#ef4444")
+                col = QColor("#ff3366")  # Neon Red/Pink
 
-            grad = QLinearGradient(fill_x, fill_y, fill_x, fill_y + fill_h)
-            grad.setColorAt(0.0, col_top)
-            grad.setColorAt(1.0, col_bot)
+            painter.setBrush(QBrush(col))
+            painter.setPen(QPen(QColor("#000000"), 2.0))
+            painter.drawRoundedRect(fill_x, fill_y, fill_w, fill_h, 5, 5)
 
-            painter.setBrush(QBrush(grad))
-            painter.setPen(Qt.NoPen)
-            painter.drawRoundedRect(fill_x, fill_y, fill_w, fill_h, 6, 6)
+        # Text inside battery: Black text on white/yellow pill with hard shadow
+        text_bg_w = body_w - 16
+        text_bg_h = 38
+        text_bg_x = body_x + 8
+        text_bg_y = body_y + (body_h // 2) - 19
 
-        # Text inside battery
-        painter.setPen(QColor("#ffffff"))
-        font_pct = QFont("Segoe UI", 15, QFont.Bold)
+        # Text badge hard offset shadow (3px)
+        painter.fillRect(text_bg_x + 3, text_bg_y + 3, text_bg_w, text_bg_h, QColor("#000000"))
+        painter.setBrush(QBrush(QColor("#ffffff")))
+        painter.setPen(QPen(QColor("#000000"), 2.0))
+        painter.drawRoundedRect(text_bg_x, text_bg_y, text_bg_w, text_bg_h, 6, 6)
+
+        painter.setPen(QColor("#000000"))
+        font_pct = QFont("Segoe UI", 13, QFont.Black)
         painter.setFont(font_pct)
-        painter.drawText(body_x, body_y + (body_h // 2) - 13, body_w, 24, Qt.AlignCenter, f"{self.soc_pct:.1f}%")
+        painter.drawText(text_bg_x, text_bg_y + 2, text_bg_w, 18, Qt.AlignCenter, f"{self.soc_pct:.1f}%")
 
-        font_v = QFont("Segoe UI", 10, QFont.Normal)
+        font_v = QFont("Segoe UI", 10, QFont.Bold)
         painter.setFont(font_v)
-        painter.setPen(QColor("#94a3b8"))
-        painter.drawText(body_x, body_y + (body_h // 2) + 11, body_w, 18, Qt.AlignCenter, f"{self.voltage:.2f} V")
+        painter.drawText(text_bg_x, text_bg_y + 20, text_bg_w, 16, Qt.AlignCenter, f"{self.voltage:.2f} V")
 
-        font_sub = QFont("Segoe UI", 9, QFont.Bold)
+        # Bottom label pill with hard offset shadow
+        sub_w = 114
+        sub_h = 20
+        sub_x = (w - sub_w) // 2
+        sub_y = h - 24
+
+        painter.fillRect(sub_x + 3, sub_y + 3, sub_w, sub_h, QColor("#000000"))
+        painter.setBrush(QBrush(QColor("#ffe600")))
+        painter.setPen(QPen(QColor("#000000"), 2.0))
+        painter.drawRoundedRect(sub_x, sub_y, sub_w, sub_h, 4, 4)
+
+        font_sub = QFont("Segoe UI", 8, QFont.Black)
         painter.setFont(font_sub)
-        painter.setPen(QColor("#38bdf8"))
-        painter.drawText(0, h - 20, w, 18, Qt.AlignCenter, "ESTIMATED SOC")
+        painter.setPen(QColor("#000000"))
+        painter.drawText(sub_x, sub_y, sub_w, sub_h, Qt.AlignCenter, "ESTIMATED SOC")
 
 
 # ==============================================================================
-# MAIN APPLICATION WINDOW (STUDIO REDESIGN)
+# MAIN APPLICATION WINDOW (NEO-BRUTALIST WORKSTATION)
 # ==============================================================================
 class ModernBatteryAnalyzer(QMainWindow):
-    """Voltix Studio // Modern Battery Analyzer & Electrochemical Telemetry Suite."""
+    """Voltix Pro // Neo-Brutalist Battery Analyzer & Electrochemical Telemetry Suite."""
 
     def __init__(self, initial_csv: str = "Battery_data.csv"):
         super().__init__()
-        self.setWindowTitle("VOLTIX STUDIO // Modern Battery Analyzer & Telemetry Suite")
+        self.setWindowTitle("VOLTIX PRO // Neo-Brutalist Battery Telemetry Suite")
         self.resize(1360, 900)
         self.setMinimumSize(1100, 740)
 
@@ -422,7 +514,7 @@ class ModernBatteryAnalyzer(QMainWindow):
                 self.load_dataset(alt)
 
     def _init_ui(self):
-        """Constructs the modern Studio Workspace layout with Sidebar Rail and Main Canvas."""
+        """Constructs the Neo-Brutalist Workspace layout with Sidebar Rail and Main Canvas."""
         root = QWidget()
         root.setObjectName("MainRoot")
         self.setCentralWidget(root)
@@ -431,15 +523,15 @@ class ModernBatteryAnalyzer(QMainWindow):
         root_layout.setContentsMargins(0, 0, 0, 0)
         root_layout.setSpacing(0)
 
-        # 1. Left Studio Sidebar
+        # 1. Left Sidebar
         sidebar = self._build_sidebar()
         root_layout.addWidget(sidebar)
 
-        # 2. Right Main Studio Canvas
+        # 2. Right Main Canvas Container
         canvas_container = QWidget()
         canvas_layout = QVBoxLayout(canvas_container)
         canvas_layout.setContentsMargins(18, 14, 18, 14)
-        canvas_layout.setSpacing(12)
+        canvas_layout.setSpacing(14)
 
         # Top Bar
         top_bar = self._build_top_bar()
@@ -460,8 +552,8 @@ class ModernBatteryAnalyzer(QMainWindow):
         canvas_layout.addWidget(self.pages, stretch=1)
 
         # Footer Status
-        self.status_bar_label = QLabel("● Ready • System initialized")
-        self.status_bar_label.setStyleSheet("color: #64748b; font-size: 11px; padding: 2px 4px;")
+        self.status_bar_label = QLabel("● Ready • Neo-Brutalist Telemetry Workstation Initialized")
+        self.status_bar_label.setStyleSheet("color: #000000; font-size: 11px; font-weight: 800; padding: 2px 4px;")
         canvas_layout.addWidget(self.status_bar_label)
 
         root_layout.addWidget(canvas_container, stretch=1)
@@ -472,26 +564,30 @@ class ModernBatteryAnalyzer(QMainWindow):
             btn.setChecked(True)
 
     # --------------------------------------------------------------------------
-    # LEFT STUDIO SIDEBAR
+    # LEFT SIDEBAR
     # --------------------------------------------------------------------------
     def _build_sidebar(self) -> QWidget:
         sidebar = QFrame()
         sidebar.setObjectName("Sidebar")
         layout = QVBoxLayout(sidebar)
         layout.setContentsMargins(14, 18, 14, 18)
-        layout.setSpacing(16)
+        layout.setSpacing(14)
 
         # Brand header
         brand_box = QVBoxLayout()
-        brand_box.setSpacing(3)
-        brand_lbl = QLabel("⚡ VOLTIX STUDIO")
+        brand_box.setSpacing(4)
+        brand_lbl = QLabel("⚡ VOLTIX PRO")
         brand_lbl.setObjectName("BrandTitle")
 
         ver_row = QHBoxLayout()
-        badge_ver = QLabel("v2.5 PRO")
-        badge_ver.setStyleSheet("background: rgba(0, 229, 255, 0.15); color: #00e5ff; border: 1px solid rgba(0, 229, 255, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;")
+        badge_ver = QLabel("NEO-BRUTALIST")
+        badge_ver.setStyleSheet("background: #ffe600; color: #000000; border: 1.5px solid #000000; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900;")
+        apply_brutalist_shadow(badge_ver, offset=2)
+
         status_dot = QLabel("● ACTIVE")
-        status_dot.setStyleSheet("color: #10b981; font-size: 10px; font-weight: 700;")
+        status_dot.setStyleSheet("background: #00f076; color: #000000; border: 1.5px solid #000000; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900;")
+        apply_brutalist_shadow(status_dot, offset=2)
+
         ver_row.addWidget(badge_ver)
         ver_row.addWidget(status_dot)
         ver_row.addStretch(1)
@@ -505,7 +601,7 @@ class ModernBatteryAnalyzer(QMainWindow):
         sec_nav.setObjectName("MutedLabel")
         layout.addWidget(sec_nav)
 
-        # Navigation Buttons (Radio group)
+        # Navigation Buttons (Radio group with dynamic hard offset shadows)
         self.nav_group = QButtonGroup(self)
         self.nav_group.setExclusive(True)
 
@@ -518,25 +614,24 @@ class ModernBatteryAnalyzer(QMainWindow):
         ]
 
         for text, idx in nav_items:
-            btn = QPushButton(text)
-            btn.setProperty("class", "NavButton")
-            btn.setCheckable(True)
+            btn = BrutalistNavButton(text)
             if idx == 0:
                 btn.setChecked(True)
             btn.clicked.connect(lambda checked, i=idx: self.pages.setCurrentIndex(i))
             self.nav_group.addButton(btn, idx)
             layout.addWidget(btn)
 
-        layout.addSpacing(10)
+        layout.addSpacing(6)
 
         # Section Label: Parameters
         sec_cfg = QLabel("CELL PARAMETERS")
         sec_cfg.setObjectName("MutedLabel")
         layout.addWidget(sec_cfg)
 
-        # Card for Chemistry & Specs
+        # Card for Chemistry & Specs (Hard offset shadow 5px)
         cfg_card = QFrame()
         cfg_card.setObjectName("SidebarCard")
+        apply_brutalist_shadow(cfg_card, offset=5)
         cfg_lay = QVBoxLayout(cfg_card)
         cfg_lay.setContentsMargins(12, 12, 12, 12)
         cfg_lay.setSpacing(10)
@@ -552,6 +647,7 @@ class ModernBatteryAnalyzer(QMainWindow):
             "NiMH (1.45V)",
             "Custom"
         ])
+        apply_brutalist_shadow(self.combo_chem, offset=3)
         self.combo_chem.currentIndexChanged.connect(self._on_chem_changed)
         cfg_lay.addWidget(lbl_chem)
         cfg_lay.addWidget(self.combo_chem)
@@ -564,6 +660,7 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.spin_capacity.setValue(2.00)
         self.spin_capacity.setSingleStep(0.1)
         self.spin_capacity.setSuffix(" Ah")
+        apply_brutalist_shadow(self.spin_capacity, offset=3)
         self.spin_capacity.valueChanged.connect(self._recalc_with_params)
         cfg_lay.addWidget(lbl_cap)
         cfg_lay.addWidget(self.spin_capacity)
@@ -576,6 +673,7 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.spin_cutoff.setValue(3.20)
         self.spin_cutoff.setSingleStep(0.05)
         self.spin_cutoff.setSuffix(" V")
+        apply_brutalist_shadow(self.spin_cutoff, offset=3)
         self.spin_cutoff.valueChanged.connect(self._recalc_with_params)
         cfg_lay.addWidget(lbl_cut)
         cfg_lay.addWidget(self.spin_cutoff)
@@ -584,10 +682,10 @@ class ModernBatteryAnalyzer(QMainWindow):
 
         layout.addStretch(1)
 
-        # Bottom load button in sidebar
-        self.btn_load_side = QPushButton("📂 Open CSV File")
+        # Bottom load button in sidebar (Tactile Brutalist Button)
+        self.btn_load_side = BrutalistButton("📂 Open CSV File", offset=4)
         self.btn_load_side.setObjectName("PrimaryGlowBtn")
-        self.btn_load_side.setFixedHeight(34)
+        self.btn_load_side.setFixedHeight(38)
         self.btn_load_side.clicked.connect(self.on_open_file_dialog)
         layout.addWidget(self.btn_load_side)
 
@@ -599,52 +697,65 @@ class ModernBatteryAnalyzer(QMainWindow):
     def _build_top_bar(self) -> QWidget:
         top_bar = QFrame()
         top_bar.setObjectName("TopNavBar")
+        apply_brutalist_shadow(top_bar, offset=5)
         layout = QHBoxLayout(top_bar)
         layout.setContentsMargins(16, 10, 16, 10)
         layout.setSpacing(14)
 
         # Breadcrumb / Dataset indicator
         self.lbl_dataset = QLabel("📁 Battery_data.csv")
-        self.lbl_dataset.setStyleSheet("background: #090e1c; border: 1px solid #1e2942; padding: 6px 14px; border-radius: 6px; font-weight: 700; color: #38bdf8; font-size: 12px;")
+        self.lbl_dataset.setStyleSheet("background: #ffe600; border: 2px solid #000000; padding: 6px 14px; border-radius: 6px; font-weight: 900; color: #000000; font-size: 12px;")
+        apply_brutalist_shadow(self.lbl_dataset, offset=3)
         layout.addWidget(self.lbl_dataset)
 
         self.lbl_points_badge = QLabel("80 points • 10.0s rate")
-        self.lbl_points_badge.setStyleSheet("color: #94a3b8; font-size: 11px;")
+        self.lbl_points_badge.setStyleSheet("background: #ffffff; border: 1.5px solid #000000; padding: 5px 12px; border-radius: 6px; color: #000000; font-size: 11px; font-weight: 800;")
+        apply_brutalist_shadow(self.lbl_points_badge, offset=3)
         layout.addWidget(self.lbl_points_badge)
 
         layout.addStretch(1)
 
-        # Actions
-        btn_html = QPushButton("🌐 Web Dashboard")
+        # Actions (Tactile Buttons with Hard Offset Shadows)
+        btn_html = BrutalistButton("🌐 Web Dashboard", offset=4)
         btn_html.setObjectName("AccentGlowBtn")
         btn_html.clicked.connect(self.on_export_html)
         layout.addWidget(btn_html)
 
-        btn_snap = QPushButton("📸 Snap Charts")
+        btn_snap = BrutalistButton("📸 Snap Charts", offset=4)
         btn_snap.clicked.connect(self.on_save_charts)
         layout.addWidget(btn_snap)
 
         return top_bar
 
     # --------------------------------------------------------------------------
-    # HERO KPI CARDS
+    # HERO KPI CARDS (PROMINENT 5PX HARD SHADOWS)
     # --------------------------------------------------------------------------
     def _build_hero_kpis(self) -> QWidget:
         container = QWidget()
         layout = QHBoxLayout(container)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(10)
+        layout.setContentsMargins(0, 0, 8, 8)
+        layout.setSpacing(14)
 
-        def make_kpi(title: str, val_attr: str, sub_attr: str, accent: str):
+        kpi_configs = [
+            ("Terminal Voltage", "kpi_v_val", "kpi_v_sub", "#0284c7", "#e0f2fe"),
+            ("Delivered Capacity", "kpi_cap_val", "kpi_cap_sub", "#16a34a", "#dcfce7"),
+            ("Delivered Energy", "kpi_wh_val", "kpi_wh_sub", "#eab308", "#fef9c3"),
+            ("Current & Power", "kpi_ip_val", "kpi_ip_sub", "#ea580c", "#ffedd5"),
+            ("Cell Health Grade", "kpi_health_val", "kpi_health_sub", "#db2777", "#fce7f3"),
+        ]
+
+        def make_kpi(title: str, val_attr: str, sub_attr: str, accent: str, bg_color: str):
             card = QFrame()
             card.setObjectName("HeroCard")
+            card.setStyleSheet(f"background-color: {bg_color}; border: 2.5px solid #000000; border-radius: 8px;")
+            apply_brutalist_shadow(card, offset=5)
             c_lay = QVBoxLayout(card)
             c_lay.setContentsMargins(14, 12, 14, 12)
             c_lay.setSpacing(4)
 
             stripe = QFrame()
-            stripe.setFixedHeight(3)
-            stripe.setStyleSheet(f"background-color: {accent}; border-radius: 1px;")
+            stripe.setFixedHeight(4)
+            stripe.setStyleSheet(f"background-color: {accent}; border-radius: 2px;")
             c_lay.addWidget(stripe)
 
             t = QLabel(title)
@@ -663,23 +774,21 @@ class ModernBatteryAnalyzer(QMainWindow):
 
             return card
 
-        layout.addWidget(make_kpi("Terminal Voltage", "kpi_v_val", "kpi_v_sub", "#00e5ff"))
-        layout.addWidget(make_kpi("Delivered Capacity", "kpi_cap_val", "kpi_cap_sub", "#10b981"))
-        layout.addWidget(make_kpi("Delivered Energy", "kpi_wh_val", "kpi_wh_sub", "#facc15"))
-        layout.addWidget(make_kpi("Current & Power", "kpi_ip_val", "kpi_ip_sub", "#fb923c"))
-        layout.addWidget(make_kpi("Cell Health Grade", "kpi_health_val", "kpi_health_sub", "#a855f7"))
+        for title, val_attr, sub_attr, accent, bg_color in kpi_configs:
+            layout.addWidget(make_kpi(title, val_attr, sub_attr, accent, bg_color))
 
         return container
 
     # --------------------------------------------------------------------------
-    # PAGE 0: OVERVIEW COCKPIT
+    # PAGE 0: OVERVIEW COCKPIT (6PX HARD SHADOW CANVAS)
     # --------------------------------------------------------------------------
     def _build_page_cockpit(self) -> QWidget:
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(4, 4, 10, 10)
 
         self.canvas_cockpit = StudioMplCanvas(page, width=10, height=6)
+        apply_brutalist_shadow(self.canvas_cockpit, offset=6)
         layout.addWidget(self.canvas_cockpit)
         return page
 
@@ -702,67 +811,66 @@ class ModernBatteryAnalyzer(QMainWindow):
             self.canvas_cockpit.apply_studio_theme(ax)
 
         # 1. Voltage vs Time
-        ax1.plot(df["Time"], df["Voltage"], color="#00e5ff", linewidth=2.4, label="Voltage (V)")
-        ax1.axhline(m.v_cutoff, color="#ef4444", linestyle="--", alpha=0.8, label=f"Cutoff ({m.v_cutoff:.2f}V)")
-        ax1.axhline(m.plateau_v_mean, color="#10b981", linestyle=":", alpha=0.7, label=f"Plateau ({m.plateau_v_mean:.2f}V)")
-        ax1.fill_between(df["Time"], df["Voltage"], m.v_cutoff, color="#00e5ff", alpha=0.08)
+        ax1.plot(df["Time"], df["Voltage"], color="#0284c7", linewidth=2.8, label="Voltage (V)")
+        ax1.axhline(m.v_cutoff, color="#dc2626", linestyle="--", linewidth=2.0, alpha=0.9, label=f"Cutoff ({m.v_cutoff:.2f}V)")
+        ax1.axhline(m.plateau_v_mean, color="#16a34a", linestyle=":", linewidth=2.0, alpha=0.9, label=f"Plateau ({m.plateau_v_mean:.2f}V)")
+        ax1.fill_between(df["Time"], df["Voltage"], m.v_cutoff, color="#0284c7", alpha=0.15)
         ax1.set_title("Voltage vs Time (Discharge Profile)")
         ax1.set_xlabel("Time (s)")
         ax1.set_ylabel("Voltage (V)")
-        ax1.legend(loc="upper right", facecolor="#111728", edgecolor="#1e2942", labelcolor="#cbd5e1", fontsize=8)
+        ax1.legend(loc="upper right", facecolor="#ffffff", edgecolor="#000000", labelcolor="#000000", fontsize=8)
 
         # 2. Dynamic Load Drain (Current & Power)
-        ax2.plot(df["Time"], df["Current"], color="#fb923c", linewidth=2.0, label="Current (A)")
+        ax2.plot(df["Time"], df["Current"], color="#ea580c", linewidth=2.4, label="Current (A)")
         ax2.set_title("Current & Power Drain vs Time")
         ax2.set_xlabel("Time (s)")
-        ax2.set_ylabel("Current (A)", color="#fb923c")
-        ax2.tick_params(axis="y", labelcolor="#fb923c")
+        ax2.set_ylabel("Current (A)", color="#ea580c")
+        ax2.tick_params(axis="y", labelcolor="#ea580c")
 
         ax2_p = ax2.twinx()
-        ax2_p.plot(df["Time"], df["Power"], color="#c084fc", linewidth=1.8, linestyle="-.", label="Power (W)")
-        ax2_p.set_ylabel("Power (W)", color="#c084fc")
-        ax2_p.tick_params(axis="y", labelcolor="#c084fc")
-        ax2_p.spines["right"].set_color("#1e2942")
-        ax2_p.spines["left"].set_color("#1e2942")
-        ax2_p.spines["top"].set_color("#1e2942")
-        ax2_p.spines["bottom"].set_color("#1e2942")
+        ax2_p.plot(df["Time"], df["Power"], color="#7c3aed", linewidth=2.2, linestyle="-.", label="Power (W)")
+        ax2_p.set_ylabel("Power (W)", color="#7c3aed")
+        ax2_p.tick_params(axis="y", labelcolor="#7c3aed")
+        for spine in ax2_p.spines.values():
+            spine.set_color("#000000")
+            spine.set_linewidth(2.0)
 
         # 3. Capacity & Energy Accumulation
-        ax3.plot(df["Time"], df["Capacity_mAh"], color="#10b981", linewidth=2.0, label="Capacity (mAh)")
+        ax3.plot(df["Time"], df["Capacity_mAh"], color="#16a34a", linewidth=2.4, label="Capacity (mAh)")
         ax3.set_title("Delivered Capacity & Energy Accumulation")
         ax3.set_xlabel("Time (s)")
-        ax3.set_ylabel("Capacity (mAh)", color="#10b981")
-        ax3.tick_params(axis="y", labelcolor="#10b981")
+        ax3.set_ylabel("Capacity (mAh)", color="#16a34a")
+        ax3.tick_params(axis="y", labelcolor="#16a34a")
 
         ax3_e = ax3.twinx()
-        ax3_e.plot(df["Time"], df["Energy_Wh"], color="#facc15", linewidth=2.0, linestyle="--", label="Energy (Wh)")
-        ax3_e.set_ylabel("Energy (Wh)", color="#facc15")
-        ax3_e.tick_params(axis="y", labelcolor="#facc15")
-        ax3_e.spines["right"].set_color("#1e2942")
-        ax3_e.spines["left"].set_color("#1e2942")
-        ax3_e.spines["top"].set_color("#1e2942")
-        ax3_e.spines["bottom"].set_color("#1e2942")
+        ax3_e.plot(df["Time"], df["Energy_Wh"], color="#d97706", linewidth=2.4, linestyle="--", label="Energy (Wh)")
+        ax3_e.set_ylabel("Energy (Wh)", color="#d97706")
+        ax3_e.tick_params(axis="y", labelcolor="#d97706")
+        for spine in ax3_e.spines.values():
+            spine.set_color("#000000")
+            spine.set_linewidth(2.0)
 
         # 4. Definitive V vs Capacity
-        ax4.plot(df["Capacity_Ah"], df["Voltage"], color="#38bdf8", linewidth=2.4)
+        ax4.plot(df["Capacity_Ah"], df["Voltage"], color="#0284c7", linewidth=2.8)
         ax4.set_title("V vs Delivered Capacity (Definitive Curve)")
         ax4.set_xlabel("Delivered Capacity (Ah)")
         ax4.set_ylabel("Voltage (V)")
         ax4.scatter([df["Capacity_Ah"].iloc[0], df["Capacity_Ah"].iloc[-1]],
                     [df["Voltage"].iloc[0], df["Voltage"].iloc[-1]],
-                    color="#00e5ff", s=40, zorder=5)
+                    color="#ffe600", edgecolors="#000000", linewidths=2.0, s=65, zorder=5)
 
         self.canvas_cockpit.draw()
 
     # --------------------------------------------------------------------------
-    # PAGE 1: ELECTROCHEMICAL LAB
+    # PAGE 1: ELECTROCHEMICAL LAB (6PX HARD SHADOW CANVAS)
     # --------------------------------------------------------------------------
     def _build_page_electrochemistry(self) -> QWidget:
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(4, 4, 10, 10)
 
         self.canvas_electro = StudioMplCanvas(page, width=10, height=6)
+        apply_brutalist_shadow(self.canvas_electro, offset=6)
         layout.addWidget(self.canvas_electro)
         return page
 
@@ -784,34 +892,34 @@ class ModernBatteryAnalyzer(QMainWindow):
             self.canvas_electro.apply_studio_theme(ax)
 
         # 1. Discharge Stage Decomposition (V vs Ah)
-        ax1.plot(df["Capacity_Ah"], df["Voltage"], color="#38bdf8", linewidth=2.5, label="Discharge Curve")
+        ax1.plot(df["Capacity_Ah"], df["Voltage"], color="#0284c7", linewidth=2.8, label="Discharge Curve")
         ohmic_cap = df["Capacity_Ah"].iloc[min(2, len(df)-1)]
         knee_indices = np.where(df["Voltage"] <= 3.5)[0]
         knee_cap = df["Capacity_Ah"].iloc[knee_indices[0]] if len(knee_indices) > 0 else df["Capacity_Ah"].iloc[-1]
 
-        ax1.axvspan(0, ohmic_cap, color="#3b82f6", alpha=0.15, label="1. Ohmic Drop")
-        ax1.axvspan(ohmic_cap, knee_cap, color="#10b981", alpha=0.12, label="2. Working Plateau")
-        ax1.axvspan(knee_cap, df["Capacity_Ah"].iloc[-1], color="#ef4444", alpha=0.15, label="3. Knee / Depletion")
+        ax1.axvspan(0, ohmic_cap, color="#bae6fd", alpha=0.45, label="1. Ohmic Drop")
+        ax1.axvspan(ohmic_cap, knee_cap, color="#bbf7d0", alpha=0.45, label="2. Working Plateau")
+        ax1.axvspan(knee_cap, df["Capacity_Ah"].iloc[-1], color="#fecdd3", alpha=0.45, label="3. Knee / Depletion")
         ax1.set_title("Discharge Stage Decomposition (V vs Ah)")
         ax1.set_xlabel("Delivered Capacity (Ah)")
         ax1.set_ylabel("Voltage (V)")
-        ax1.legend(loc="upper right", facecolor="#111728", edgecolor="#1e2942", labelcolor="#cbd5e1", fontsize=8)
+        ax1.legend(loc="upper right", facecolor="#ffffff", edgecolor="#000000", labelcolor="#000000", fontsize=8)
 
         # 2. State of Charge (SoC %) vs Voltage (OCV-SoC curve)
-        ax2.plot(df["Voltage"], df["SoC_pct"], color="#818cf8", linewidth=2.2)
+        ax2.plot(df["Voltage"], df["SoC_pct"], color="#7c3aed", linewidth=2.6)
         ax2.set_title("State of Charge (SoC %) vs Voltage")
         ax2.set_xlabel("Terminal Voltage (V)")
         ax2.set_ylabel("Estimated SoC (%)")
 
         # 3. Voltage Sag Rate (dV/dt) vs Time
-        ax3.plot(df["Time"], np.abs(df["dV_dt_mV_s"]), color="#f43f5e", linewidth=1.8, label="|dV/dt|")
+        ax3.plot(df["Time"], np.abs(df["dV_dt_mV_s"]), color="#e11d48", linewidth=2.4, label="|dV/dt|")
         ax3.set_title("Voltage Decay Velocity |dV/dt| (mV/s)")
         ax3.set_xlabel("Time (s)")
         ax3.set_ylabel("Sag Rate (mV/s)")
-        ax3.legend(loc="upper right", facecolor="#111728", edgecolor="#1e2942", labelcolor="#cbd5e1", fontsize=8)
+        ax3.legend(loc="upper right", facecolor="#ffffff", edgecolor="#000000", labelcolor="#000000", fontsize=8)
 
         # 4. Instantaneous Power vs Voltage
-        ax4.plot(df["Voltage"], df["Power"], color="#f59e0b", linewidth=2.0)
+        ax4.plot(df["Voltage"], df["Power"], color="#d97706", linewidth=2.4)
         ax4.set_title("Power vs Terminal Voltage Profile")
         ax4.set_xlabel("Terminal Voltage (V)")
         ax4.set_ylabel("Power Output (W)")
@@ -824,12 +932,13 @@ class ModernBatteryAnalyzer(QMainWindow):
     def _build_page_simulation(self) -> QWidget:
         page = QWidget()
         h_layout = QHBoxLayout(page)
-        h_layout.setContentsMargins(0, 0, 0, 0)
-        h_layout.setSpacing(14)
+        h_layout.setContentsMargins(4, 4, 10, 10)
+        h_layout.setSpacing(16)
 
         # Left panel: Visual Battery Widget & Dynamic Gauge Box
         left_panel = QFrame()
         left_panel.setObjectName("SimCard")
+        apply_brutalist_shadow(left_panel, offset=6)
         left_panel.setFixedWidth(310)
         lp_lay = QVBoxLayout(left_panel)
         lp_lay.setContentsMargins(14, 14, 14, 14)
@@ -843,9 +952,10 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.battery_widget = BatteryCell3DWidget()
         lp_lay.addWidget(self.battery_widget, alignment=Qt.AlignCenter)
 
-        # Live HUD Metric Grid
+        # Live HUD Metric Grid (Hard shadow 4px)
         grid_frame = QFrame()
         grid_frame.setObjectName("HudFrame")
+        apply_brutalist_shadow(grid_frame, offset=4)
         grid_lay = QVBoxLayout(grid_frame)
         grid_lay.setContentsMargins(12, 10, 12, 10)
         grid_lay.setSpacing(7)
@@ -853,9 +963,9 @@ class ModernBatteryAnalyzer(QMainWindow):
         def make_hud_row(label: str, attr_name: str):
             row = QHBoxLayout()
             l = QLabel(label)
-            l.setStyleSheet("color: #94a3b8; font-size: 11px;")
+            l.setStyleSheet("color: #000000; font-size: 11px; font-weight: 800;")
             v = QLabel("--")
-            v.setStyleSheet("color: #00e5ff; font-weight: 700; font-size: 13px;")
+            v.setStyleSheet("color: #000000; font-weight: 900; font-size: 13px; background: #ffe600; border: 1.5px solid #000000; padding: 2px 6px; border-radius: 4px;")
             setattr(self, attr_name, v)
             row.addWidget(l)
             row.addStretch(1)
@@ -877,16 +987,19 @@ class ModernBatteryAnalyzer(QMainWindow):
         # Right panel: Dynamic Chart + Scrub/Play controls
         right_panel = QFrame()
         right_panel.setObjectName("PanelCard")
+        apply_brutalist_shadow(right_panel, offset=6)
         rp_lay = QVBoxLayout(right_panel)
         rp_lay.setContentsMargins(12, 12, 12, 12)
         rp_lay.setSpacing(10)
 
         self.canvas_sim = StudioMplCanvas(right_panel, width=7, height=4)
+        apply_brutalist_shadow(self.canvas_sim, offset=5)
         rp_lay.addWidget(self.canvas_sim, stretch=1)
 
         # Control Bar
         ctrl_box = QFrame()
         ctrl_box.setObjectName("HudFrame")
+        apply_brutalist_shadow(ctrl_box, offset=4)
         ctrl_lay = QVBoxLayout(ctrl_box)
         ctrl_lay.setContentsMargins(12, 10, 12, 10)
         ctrl_lay.setSpacing(8)
@@ -894,37 +1007,41 @@ class ModernBatteryAnalyzer(QMainWindow):
         # Slider row
         slider_row = QHBoxLayout()
         self.lbl_sim_time_now = QLabel("0.0 s")
-        self.lbl_sim_time_now.setStyleSheet("color: #00e5ff; font-weight: 700; font-size: 12px; min-width: 60px;")
+        self.lbl_sim_time_now.setStyleSheet("color: #000000; background: #ffe600; border: 1.5px solid #000000; padding: 2px 8px; border-radius: 4px; font-weight: 900; font-size: 12px; min-width: 60px;")
+        apply_brutalist_shadow(self.lbl_sim_time_now, offset=2)
         self.sim_slider = QSlider(Qt.Horizontal)
         self.sim_slider.setRange(0, 100)
         self.sim_slider.sliderMoved.connect(self._on_slider_moved)
         self.lbl_sim_time_end = QLabel("0.0 s")
-        self.lbl_sim_time_end.setStyleSheet("color: #94a3b8; font-size: 12px; min-width: 60px; text-align: right;")
+        self.lbl_sim_time_end.setStyleSheet("color: #000000; font-size: 12px; font-weight: 800; min-width: 60px; text-align: right;")
 
         slider_row.addWidget(self.lbl_sim_time_now)
         slider_row.addWidget(self.sim_slider, stretch=1)
         slider_row.addWidget(self.lbl_sim_time_end)
         ctrl_lay.addLayout(slider_row)
 
-        # Buttons row
+        # Buttons row (Tactile Brutalist Buttons)
         btn_row = QHBoxLayout()
-        self.btn_play = QPushButton("▶ Play")
-        self.btn_play.setFixedSize(95, 34)
-        self.btn_play.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #00c6ff, stop:1 #0072ff); color: #ffffff; font-weight: 800; border-radius: 6px; font-size: 13px;")
+        self.btn_play = BrutalistButton("▶ Play", offset=4)
+        self.btn_play.setFixedSize(95, 36)
+        self.btn_play.setStyleSheet("background-color: #00f076; color: #000000; border: 2.5px solid #000000; font-weight: 900; border-radius: 6px; font-size: 13px;")
         self.btn_play.clicked.connect(self._toggle_playback)
 
-        self.btn_rewind = QPushButton("⏮ Reset")
-        self.btn_rewind.setFixedSize(85, 34)
-        self.btn_rewind.setStyleSheet("background: #1a2236; color: #f8fafc; border: 1px solid #2d3b59; border-radius: 6px; font-weight: 600; font-size: 12px;")
+        self.btn_rewind = BrutalistButton("⏮ Reset", offset=4)
+        self.btn_rewind.setFixedSize(85, 36)
+        self.btn_rewind.setStyleSheet("background-color: #ffffff; color: #000000; border: 2.5px solid #000000; border-radius: 6px; font-weight: 800; font-size: 12px;")
         self.btn_rewind.clicked.connect(self._rewind_playback)
 
         btn_row.addWidget(self.btn_play)
         btn_row.addWidget(self.btn_rewind)
         btn_row.addSpacing(16)
 
-        btn_row.addWidget(QLabel("Speed:"))
+        lbl_spd = QLabel("Speed:")
+        lbl_spd.setStyleSheet("color: #000000; font-weight: 800;")
+        btn_row.addWidget(lbl_spd)
         self.combo_speed = QComboBox()
         self.combo_speed.addItems(["1x Real-Time", "2x Faster", "5x High Speed", "10x Ultra Speed"])
+        apply_brutalist_shadow(self.combo_speed, offset=3)
         self.combo_speed.currentIndexChanged.connect(self._on_speed_changed)
         btn_row.addWidget(self.combo_speed)
         btn_row.addStretch(1)
@@ -946,10 +1063,10 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.sim_ax = fig.add_subplot(1, 1, 1)
         self.canvas_sim.apply_studio_theme(self.sim_ax)
 
-        self.sim_ax.plot(df["Time"], df["Voltage"], color="#1e2942", linewidth=2.0, label="Discharge Path")
-        self.sim_line_active, = self.sim_ax.plot([], [], color="#00e5ff", linewidth=2.5, label="Elapsed")
-        self.sim_marker, = self.sim_ax.plot([], [], marker="o", markersize=9, color="#00e5ff",
-                                            markeredgecolor="#ffffff", markeredgewidth=2)
+        self.sim_ax.plot(df["Time"], df["Voltage"], color="#cbd5e1", linewidth=2.0, label="Discharge Path")
+        self.sim_line_active, = self.sim_ax.plot([], [], color="#0284c7", linewidth=3.0, label="Elapsed")
+        self.sim_marker, = self.sim_ax.plot([], [], marker="o", markersize=10, color="#ffe600",
+                                            markeredgecolor="#000000", markeredgewidth=2.5)
 
         self.sim_ax.set_title("Interactive Dynamic Discharge Tracker")
         self.sim_ax.set_xlabel("Time (s)")
@@ -992,10 +1109,10 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.sim_slider.setValue(idx)
         self.sim_slider.blockSignals(False)
 
-        # Update 3D Battery
+        # Update Battery Cell
         self.battery_widget.set_values(soc, v)
 
-        # Update Marker
+        # Update Marker & Elapsed Line
         if hasattr(self, "sim_line_active"):
             times_elapsed = df["Time"].iloc[:idx + 1]
             volts_elapsed = df["Voltage"].iloc[:idx + 1]
@@ -1007,9 +1124,11 @@ class ModernBatteryAnalyzer(QMainWindow):
         if self.play_timer.isActive():
             self.play_timer.stop()
             self.btn_play.setText("▶ Play")
+            self.btn_play.setStyleSheet("background-color: #00f076; color: #000000; border: 2.5px solid #000000; font-weight: 900; border-radius: 6px; font-size: 13px;")
         else:
             self.play_timer.start(100 // self.playback_speed)
             self.btn_play.setText("⏸ Pause")
+            self.btn_play.setStyleSheet("background-color: #ff3366; color: #ffffff; border: 2.5px solid #000000; font-weight: 900; border-radius: 6px; font-size: 13px;")
 
     def _on_playback_tick(self):
         if not self.dataset:
@@ -1018,6 +1137,7 @@ class ModernBatteryAnalyzer(QMainWindow):
         if self.play_idx >= n - 1:
             self.play_timer.stop()
             self.btn_play.setText("▶ Play")
+            self.btn_play.setStyleSheet("background-color: #00f076; color: #000000; border: 2.5px solid #000000; font-weight: 900; border-radius: 6px; font-size: 13px;")
             return
         self.play_idx += 1
         self._update_simulation_point(self.play_idx)
@@ -1025,6 +1145,7 @@ class ModernBatteryAnalyzer(QMainWindow):
     def _rewind_playback(self):
         self.play_timer.stop()
         self.btn_play.setText("▶ Play")
+        self.btn_play.setStyleSheet("background-color: #00f076; color: #000000; border: 2.5px solid #000000; font-weight: 900; border-radius: 6px; font-size: 13px;")
         self.play_idx = 0
         self._update_simulation_point(0)
 
@@ -1038,26 +1159,28 @@ class ModernBatteryAnalyzer(QMainWindow):
             self.play_timer.setInterval(max(10, 100 // self.playback_speed))
 
     # --------------------------------------------------------------------------
-    # PAGE 3: TELEMETRY MATRIX (TABLE)
+    # PAGE 3: TELEMETRY MATRIX (TABLE WITH 6PX HARD SHADOW)
     # --------------------------------------------------------------------------
     def _build_page_matrix(self) -> QWidget:
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(4, 4, 10, 10)
         layout.setSpacing(10)
 
         # Search Bar
         top_bar = QHBoxLayout()
         search_lbl = QLabel("Search Matrix:")
-        search_lbl.setStyleSheet("color: #94a3b8; font-size: 12px; font-weight: 600;")
+        search_lbl.setStyleSheet("color: #000000; font-size: 12px; font-weight: 900;")
         top_bar.addWidget(search_lbl)
 
         self.edit_filter = QLineEdit()
         self.edit_filter.setPlaceholderText("Filter points by typing value (e.g. 4.1 or 3.2)...")
+        apply_brutalist_shadow(self.edit_filter, offset=3)
         self.edit_filter.textChanged.connect(self._filter_table)
         top_bar.addWidget(self.edit_filter, stretch=1)
 
-        self.btn_export_csv = QPushButton("💾 Export Filtered CSV")
+        self.btn_export_csv = BrutalistButton("💾 Export Filtered CSV", offset=4)
+        self.btn_export_csv.setStyleSheet("background-color: #a78bfa; color: #000000; border: 2.5px solid #000000; font-weight: 900; border-radius: 6px; padding: 7px 14px;")
         self.btn_export_csv.clicked.connect(self.on_export_table_csv)
         top_bar.addWidget(self.btn_export_csv)
 
@@ -1067,10 +1190,12 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.table_widget.setAlternatingRowColors(True)
         self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table_widget.verticalHeader().setVisible(False)
+        apply_brutalist_shadow(self.table_widget, offset=6)
         layout.addWidget(self.table_widget, stretch=1)
 
         self.lbl_stats = QLabel("Points: 0")
-        self.lbl_stats.setStyleSheet("color: #94a3b8; font-size: 11px;")
+        self.lbl_stats.setStyleSheet("color: #000000; font-size: 11px; font-weight: 800; background: #ffffff; border: 1.5px solid #000000; padding: 4px 10px; border-radius: 4px;")
+        apply_brutalist_shadow(self.lbl_stats, offset=3)
         layout.addWidget(self.lbl_stats)
 
         return page
@@ -1132,24 +1257,25 @@ class ModernBatteryAnalyzer(QMainWindow):
     def _build_page_report(self) -> QWidget:
         page = QWidget()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(4, 4, 10, 10)
         layout.setSpacing(12)
 
         top_strip = QHBoxLayout()
         title_rep = QLabel("BATTERY PERFORMANCE AUDIT & HEALTH CERTIFICATE")
-        title_rep.setStyleSheet("font-size: 13px; font-weight: 700; color: #38bdf8;")
+        title_rep.setStyleSheet("font-size: 13px; font-weight: 900; color: #000000; background: #ffe600; border: 2px solid #000000; padding: 5px 12px; border-radius: 6px;")
+        apply_brutalist_shadow(title_rep, offset=3)
         top_strip.addWidget(title_rep)
         top_strip.addStretch(1)
 
-        btn_copy = QPushButton("📋 Copy Certificate")
+        btn_copy = BrutalistButton("📋 Copy Certificate", offset=4)
         btn_copy.clicked.connect(self._copy_report_to_clipboard)
         top_strip.addWidget(btn_copy)
 
-        btn_save_txt = QPushButton("📄 Save as TXT")
+        btn_save_txt = BrutalistButton("📄 Save as TXT", offset=4)
         btn_save_txt.clicked.connect(self._save_report_txt)
         top_strip.addWidget(btn_save_txt)
 
-        btn_open_html = QPushButton("🌐 View in Browser (HTML)")
+        btn_open_html = BrutalistButton("🌐 View in Browser (HTML)", offset=4)
         btn_open_html.setObjectName("PrimaryGlowBtn")
         btn_open_html.clicked.connect(self.on_export_html)
         top_strip.addWidget(btn_open_html)
@@ -1159,11 +1285,11 @@ class ModernBatteryAnalyzer(QMainWindow):
         self.report_text = QLabel()
         self.report_text.setTextFormat(Qt.MarkdownText)
         self.report_text.setStyleSheet("""
-            background-color: #0b0f1a;
-            border: 1px solid #1e2942;
+            background-color: #ffffff;
+            border: 2.5px solid #000000;
             border-radius: 8px;
             padding: 22px;
-            color: #f8fafc;
+            color: #000000;
             font-size: 13px;
             line-height: 1.6;
         """)
@@ -1172,6 +1298,7 @@ class ModernBatteryAnalyzer(QMainWindow):
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("border: none; background: transparent;")
         scroll.setWidget(self.report_text)
+        apply_brutalist_shadow(scroll, offset=6)
 
         layout.addWidget(scroll, stretch=1)
         return page
@@ -1183,10 +1310,10 @@ class ModernBatteryAnalyzer(QMainWindow):
         m = self.dataset.metrics
         name = self.dataset.source_name
 
-        report_md = f"""# 🔋 VOLTIX STUDIO Performance Audit
+        report_md = f"""# 🔋 VOLTIX PRO Performance Audit
 **Dataset Source:** `{name}`  
 **Audit Timestamp:** `{time.strftime('%Y-%m-%d %H:%M:%S')}`  
-**Diagnostic Grade:** **<span style="color: #00e5ff;">{m.cell_grade}</span>**  
+**Diagnostic Grade:** **<span style="color: #000000; background: #ffe600; border: 1.5px solid #000000; padding: 2px 8px; border-radius: 4px;">{m.cell_grade}</span>**  
 **Executive Summary:** {m.cell_status_summary}
 
 ---
@@ -1372,7 +1499,7 @@ class ModernBatteryAnalyzer(QMainWindow):
 # ==============================================================================
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Voltix Studio Modern Battery Analyzer")
+    parser = argparse.ArgumentParser(description="Voltix Pro Neo-Brutalist Battery Analyzer")
     parser.add_argument("file", nargs="?", default="Battery_data.csv", help="CSV dataset file path")
     parser.add_argument("--cli", action="store_true", help="Run in terminal CLI mode without GUI")
     parser.add_argument("--html", action="store_true", help="Generate interactive HTML report directly")
@@ -1396,7 +1523,7 @@ def main():
         battery = load_and_analyze(args.file, nominal_capacity_ah=args.capacity, cutoff_voltage=args.cutoff)
         m = battery.metrics
         print("=" * 60)
-        print("      [VOLTIX STUDIO] - BATTERY PERFORMANCE AUDIT")
+        print("      [VOLTIX PRO] - BATTERY PERFORMANCE AUDIT")
         print("=" * 60)
         print(f"File: {args.file} | Grade: {m.cell_grade}")
         print(f"Voltage: {m.v_initial:.3f}V -> {m.v_final:.3f}V (Drop: {m.v_drop:.3f}V)")
@@ -1409,10 +1536,10 @@ def main():
         print("=" * 60)
         return
 
-    # Enable High DPI scaling and launch Studio GUI
+    # Enable High DPI scaling and launch Neo-Brutalist GUI
     QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     app = QApplication(sys.argv)
-    app.setStyleSheet(STUDIO_QSS)
+    app.setStyleSheet(NEOBRUTALISM_QSS)
 
     csv_to_open = args.file if os.path.exists(args.file) else ("battery_data.csv" if os.path.exists("battery_data.csv") else args.file)
     win = ModernBatteryAnalyzer(initial_csv=csv_to_open)
