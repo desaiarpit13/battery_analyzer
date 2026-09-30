@@ -7,41 +7,39 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-canvas: #f4efe6;
-            --bg-card: #ffffff;
-            --border-color: #000000;
-            --border-width: 2.5px;
-            --shadow-brutalist: 4px 4px 0 #000000;
-            --shadow-brutalist-lg: 5px 5px 0 #000000;
-            --text-main: #000000;
-            --text-muted: #334155;
-            --sky-bg: #e0f2fe;
-            --sky-accent: #0284c7;
-            --mint-bg: #dcfce7;
-            --mint-accent: #16a34a;
-            --yellow-bg: #fef9c3;
-            --yellow-accent: #eab308;
-            --yellow-bright: #ffe600;
-            --orange-bg: #ffedd5;
-            --orange-accent: #ea580c;
-            --pink-bg: #fce7f3;
-            --pink-accent: #db2777;
-            --purple-accent: #7c3aed;
-            --red-accent: #dc2626;
-            --radius: 8px;
+            --bg-main: #F4EFE6;
+            --bg-card: #FFFFFF;
+            --border-color: #111111;
+            --text-main: #111111;
+            --text-muted: #555555;
+            
+            /* Voltix Pro Neo-Brutalist Accents */
+            --accent-blue: #4D9DE0;
+            --accent-green: #7BC043;
+            --accent-yellow: #F7D046;
+            --accent-orange: #F28C28;
+            --accent-pink: #E86A92;
+
+            /* Mappings for badge / metrics compatibility */
+            --cyan: #4D9DE0;
+            --emerald: #7BC043;
+            --amber: #F28C28;
+            --orange: #F28C28;
+            --purple: #E86A92;
+            --rose: #E86A92;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            background-color: var(--bg-canvas);
+            background-color: var(--bg-main);
             color: var(--text-main);
-            padding: 32px 20px;
+            padding: 30px 20px;
             line-height: 1.5;
         }
 
@@ -50,221 +48,167 @@
             margin: 0 auto;
         }
 
-        /* Neo-Brutalist Header Card */
-        .header-card {
-            background: var(--bg-card);
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: var(--shadow-brutalist-lg);
-            border-radius: var(--radius);
-            padding: 24px 28px;
-            margin-bottom: 24px;
+        /* Header */
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: var(--bg-card);
+            border: 3px solid #111111;
+            box-shadow: 4px 4px 0 #111111;
+            border-radius: 0px;
+            padding: 24px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 15px;
         }
 
-        .header-brand {
+        .header-title {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             flex-wrap: wrap;
         }
 
-        .header-brand h1 {
-            font-size: 1.85rem;
+        .header-title h1 {
+            font-size: 2rem;
             font-weight: 900;
-            letter-spacing: -0.5px;
-            color: var(--text-main);
-        }
-
-        .badge-report {
-            background: var(--yellow-bright);
-            color: var(--text-main);
-            border: 2px solid var(--border-color);
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.78rem;
-            font-weight: 900;
-            letter-spacing: 0.5px;
+            color: #111111;
             text-transform: uppercase;
-            box-shadow: 2px 2px 0 #000;
+            letter-spacing: -0.5px;
         }
 
-        .header-meta {
-            color: var(--text-muted);
-            margin-top: 6px;
-            font-size: 0.92rem;
-            font-weight: 600;
-        }
-
-        .header-meta strong {
-            color: var(--text-main);
+        .badge {
+            background: var(--accent-yellow);
+            color: #111111;
+            border: 2px solid #111111;
+            box-shadow: 2px 2px 0 #111111;
+            padding: 5px 12px;
+            border-radius: 0px;
+            font-size: 0.82rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .grade-badge {
-            background: var(--yellow-bright);
-            color: var(--text-main);
-            border: 2.5px solid var(--border-color);
-            box-shadow: var(--shadow-brutalist);
+            background: var(--accent-green);
+            color: #111111;
+            border: 3px solid #111111;
+            box-shadow: 4px 4px 0 #111111;
             padding: 8px 18px;
-            border-radius: 6px;
+            border-radius: 0px;
             font-weight: 900;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
             text-transform: uppercase;
-            display: inline-block;
+            letter-spacing: 0.5px;
         }
 
-        /* Diagnostic Alerts */
-        .alert-box {
-            background: #fee2e2;
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: var(--shadow-brutalist);
-            border-radius: var(--radius);
-            padding: 16px 20px;
-            margin-bottom: 24px;
-        }
-
-        .alert-box h4 {
-            color: var(--red-accent);
-            font-size: 1rem;
-            font-weight: 900;
-            margin-bottom: 6px;
-        }
-
-        .alert-box ul {
-            margin-left: 20px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        /* KPI Cards Grid */
+        /* Grid KPIs */
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 18px;
-            margin-bottom: 28px;
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .kpi-card {
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: var(--shadow-brutalist);
-            border-radius: var(--radius);
-            padding: 18px;
+            background: var(--bg-card);
+            border: 3px solid #111111;
+            box-shadow: 4px 4px 0 #111111;
+            border-radius: 0px;
+            padding: 20px;
             position: relative;
-            overflow: hidden;
         }
 
-        .kpi-card.sky { background-color: var(--sky-bg); }
-        .kpi-card.mint { background-color: var(--mint-bg); }
-        .kpi-card.yellow { background-color: var(--yellow-bg); }
-        .kpi-card.orange { background-color: var(--orange-bg); }
-        .kpi-card.pink { background-color: var(--pink-bg); }
-
-        .kpi-stripe {
-            height: 4px;
-            width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-
-        .kpi-card.sky .kpi-stripe { background-color: var(--sky-accent); }
-        .kpi-card.mint .kpi-stripe { background-color: var(--mint-accent); }
-        .kpi-card.yellow .kpi-stripe { background-color: var(--yellow-accent); }
-        .kpi-card.orange .kpi-stripe { background-color: var(--orange-accent); }
-        .kpi-card.pink .kpi-stripe { background-color: var(--pink-accent); }
+        .kpi-card:nth-child(1) { border-top: 8px solid var(--accent-blue); }
+        .kpi-card:nth-child(2) { border-top: 8px solid var(--accent-yellow); }
+        .kpi-card:nth-child(3) { border-top: 8px solid var(--accent-green); }
+        .kpi-card:nth-child(4) { border-top: 8px solid var(--accent-orange); }
+        .kpi-card:nth-child(5) { border-top: 8px solid var(--accent-pink); }
 
         .kpi-label {
-            font-size: 0.78rem;
+            font-size: 0.82rem;
             font-weight: 900;
-            color: var(--text-main);
+            color: #111111;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
-            margin-bottom: 6px;
-            margin-top: 2px;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
         .kpi-value {
             font-size: 1.85rem;
             font-weight: 900;
-            color: var(--text-main);
-            margin-bottom: 4px;
+            color: #111111;
+            margin-bottom: 6px;
             letter-spacing: -0.5px;
         }
 
         .kpi-sub {
             font-size: 0.82rem;
-            color: var(--text-muted);
             font-weight: 700;
+            color: var(--text-muted);
         }
 
         /* Chart Section */
         .chart-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
-            gap: 22px;
-            margin-bottom: 28px;
+            grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
         }
 
         .chart-box {
             background: var(--bg-card);
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: var(--shadow-brutalist);
-            border-radius: var(--radius);
-            padding: 20px 22px;
+            border: 3px solid #111111;
+            box-shadow: 4px 4px 0 #111111;
+            border-radius: 0px;
+            padding: 22px;
         }
 
-        .chart-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            border-bottom: 2px solid #000000;
-            padding-bottom: 10px;
-        }
-
-        .chart-header h3 {
-            font-size: 1.08rem;
-            font-weight: 900;
-            color: var(--text-main);
-        }
-
-        .chart-pill {
-            background: #f1efe9;
-            border: 1.5px solid var(--border-color);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
-
-        /* Table Box */
-        .details-box {
-            background: var(--bg-card);
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: var(--shadow-brutalist-lg);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 28px;
-        }
-
-        .details-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 18px;
-            border-bottom: 2px solid #000000;
-            padding-bottom: 10px;
-        }
-
-        .details-header h3 {
+        .chart-box h3 {
             font-size: 1.15rem;
             font-weight: 900;
-            color: var(--text-main);
+            color: #111111;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #111111;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chart-box h3 small {
+            background: var(--bg-main);
+            color: #111111 !important;
+            border: 2px solid #111111;
+            box-shadow: 2px 2px 0 #111111;
+            padding: 3px 10px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            border-radius: 0px;
+            text-transform: uppercase;
+        }
+
+        /* Table */
+        .details-box {
+            background: var(--bg-card);
+            border: 3px solid #111111;
+            box-shadow: 4px 4px 0 #111111;
+            border-radius: 0px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .details-box h3 {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: #111111;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #111111;
         }
 
         .table-responsive {
@@ -275,76 +219,73 @@
             width: 100%;
             border-collapse: collapse;
             text-align: left;
-            border: 2px solid var(--border-color);
+            border: 2px solid #111111;
         }
 
         th, td {
-            padding: 12px 16px;
+            padding: 12px 14px;
+            border: 2px solid #111111;
             font-size: 0.9rem;
+            color: #111111;
         }
 
         th {
-            color: var(--text-main);
+            color: #111111;
             font-weight: 900;
-            background: var(--yellow-bright);
-            border-bottom: 2px solid var(--border-color);
-            border-right: 1px solid #000000;
             text-transform: uppercase;
-            font-size: 0.8rem;
+            background: var(--accent-yellow);
+            border-bottom: 3px solid #111111;
             letter-spacing: 0.5px;
         }
 
-        th:last-child {
-            border-right: none;
-        }
-
-        td {
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
-            color: var(--text-main);
-            font-weight: 600;
-        }
-
-        td:last-child {
-            border-right: none;
-        }
-
         tr:nth-child(even) td {
-            background: #f8fafc;
+            background: #FAF7F2;
         }
 
         tr:hover td {
-            background: #fef9c3;
+            background: #EFE8DC;
         }
 
-        td strong {
-            font-weight: 800;
+        /* Warnings / Alert */
+        .alert-box {
+            background: #FFE4E6;
+            border: 3px solid #111111;
+            box-shadow: 4px 4px 0 #111111;
+            border-radius: 0px;
+            padding: 16px 20px;
+            margin-bottom: 25px;
+        }
+
+        .alert-box h4 {
+            color: #111111;
+            font-size: 1rem;
+            font-weight: 900;
+            margin-bottom: 5px;
+            text-transform: uppercase;
         }
 
         /* Footer */
         .footer {
-            background: var(--bg-card);
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: var(--shadow-brutalist);
-            border-radius: var(--radius);
             text-align: center;
-            color: var(--text-main);
+            color: #111111;
             font-size: 0.85rem;
             font-weight: 700;
-            padding: 16px 20px;
+            border-top: 3px solid #111111;
+            padding-top: 20px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Neo-Brutalist Header Card -->
-        <div class="header-card">
+        <!-- Header -->
+        <div class="header">
             <div>
-                <div class="header-brand">
+                <div class="header-title">
                     <h1>⚡ VOLTIX PRO ANALYZER</h1>
-                    <span class="badge-report">Battery Test Report</span>
+                    <span class="badge">Battery Test Report</span>
                 </div>
-                <p class="header-meta">Source: <strong>Battery_data.csv</strong> | Test Duration: <strong>790s (13.2 min)</strong> | Points: <strong>80</strong></p>
+                <p style="color: var(--text-muted); margin-top: 6px; font-weight: 700; font-size: 0.9rem;">Source: <strong style="color: #111111;">Battery_data.csv</strong> | Test Duration: <strong style="color: #111111;">790s (13.2 min)</strong> | Points: <strong style="color: #111111;">80</strong></p>
             </div>
             <div>
                 <span class="grade-badge">Grade B (Good)</span>
@@ -353,76 +294,56 @@
 
         <!-- Top Metrics Cards -->
         <div class="kpi-grid">
-            <div class="kpi-card sky">
-                <div class="kpi-stripe"></div>
+            <div class="kpi-card">
                 <div class="kpi-label">Voltage Range</div>
                 <div class="kpi-value">4.20V &rarr; 3.20V</div>
-                <div class="kpi-sub">Total Drop: &Delta;1.00V | Cutoff: 3.20V</div>
+                <div class="kpi-sub">Total Drop: &Delta;1.00V | Cutoff: 2.51V</div>
             </div>
-            <div class="kpi-card mint">
-                <div class="kpi-stripe"></div>
+            <div class="kpi-card">
                 <div class="kpi-label">Delivered Capacity</div>
-                <div class="kpi-value">0.4177 Ah</div>
+                <div class="kpi-value" style="color: var(--cyan);">0.4177 Ah</div>
                 <div class="kpi-sub">417.7 mAh (20.9% of 2.0Ah rating)</div>
             </div>
-            <div class="kpi-card yellow">
-                <div class="kpi-stripe"></div>
+            <div class="kpi-card">
                 <div class="kpi-label">Delivered Energy</div>
-                <div class="kpi-value">1.5808 Wh</div>
+                <div class="kpi-value" style="color: var(--emerald);">1.5808 Wh</div>
                 <div class="kpi-sub">1580.8 mWh | Avg V: 3.785V</div>
             </div>
-            <div class="kpi-card orange">
-                <div class="kpi-stripe"></div>
+            <div class="kpi-card">
                 <div class="kpi-label">Current & Power</div>
                 <div class="kpi-value">1.90A / 7.20W</div>
                 <div class="kpi-sub">Peak: 2.05A (1.02C) | Peak P: 8.57W</div>
             </div>
-            <div class="kpi-card pink">
-                <div class="kpi-stripe"></div>
+            <div class="kpi-card">
                 <div class="kpi-label">Internal Resistance</div>
-                <div class="kpi-value">250 m&Omega;</div>
+                <div class="kpi-value" style="color: var(--amber);">250 m&Omega;</div>
                 <div class="kpi-sub">Final Sag: 667 m&Omega; | Plateau: 410s</div>
             </div>
         </div>
 
-        <!-- Charts Grid -->
+        <!-- Charts -->
         <div class="chart-grid">
             <div class="chart-box">
-                <div class="chart-header">
-                    <h3>Voltage Discharge Curve</h3>
-                    <span class="chart-pill">V vs Time</span>
-                </div>
+                <h3><span>Voltage Discharge Curve</span> <small>V vs Time</small></h3>
                 <canvas id="voltageChart" height="230"></canvas>
             </div>
             <div class="chart-box">
-                <div class="chart-header">
-                    <h3>Current & Power</h3>
-                    <span class="chart-pill">Dynamic Load</span>
-                </div>
+                <h3><span>Current & Power</span> <small>Dynamic Load</small></h3>
                 <canvas id="currentPowerChart" height="230"></canvas>
             </div>
             <div class="chart-box">
-                <div class="chart-header">
-                    <h3>Delivered Capacity Accumulation</h3>
-                    <span class="chart-pill">mAh vs Time</span>
-                </div>
+                <h3><span>Delivered Capacity Accumulation</span> <small>mAh vs Time</small></h3>
                 <canvas id="capacityChart" height="230"></canvas>
             </div>
             <div class="chart-box">
-                <div class="chart-header">
-                    <h3>State of Charge Profile</h3>
-                    <span class="chart-pill">SoC% vs Time</span>
-                </div>
+                <h3><span>State of Charge Profile</span> <small>SoC% vs Time</small></h3>
                 <canvas id="socChart" height="230"></canvas>
             </div>
         </div>
 
         <!-- Table Summary -->
         <div class="details-box">
-            <div class="details-header">
-                <h3>Comprehensive Battery Telemetry Summary</h3>
-                <span class="chart-pill">Engineering Matrix</span>
-            </div>
+            <h3 style="margin-bottom: 16px;">Comprehensive Battery Telemetry Summary</h3>
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -454,7 +375,7 @@
 
         <!-- Footer -->
         <div class="footer">
-            Generated automatically by <strong>Voltix Pro Battery Analyzer</strong> &bull; Neo-Brutalist Electrochemical Test Report
+            Generated automatically by <strong>Voltix Pro Battery Analyzer</strong> &bull; Advanced Electrochemical Test Report
         </div>
     </div>
 
@@ -471,29 +392,19 @@
             plugins: {
                 legend: {
                     labels: {
-                        color: '#000000',
-                        font: { weight: 'bold', size: 11 }
+                        color: '#111111',
+                        font: { weight: '800', size: 12 }
                     }
-                },
-                tooltip: {
-                    backgroundColor: '#ffffff',
-                    titleColor: '#000000',
-                    bodyColor: '#000000',
-                    borderColor: '#000000',
-                    borderWidth: 2,
-                    displayColors: true
                 }
             },
             scales: {
                 x: {
-                    grid: { color: '#cbd5e1' },
-                    ticks: { color: '#000000', font: { weight: 'bold' } },
-                    border: { color: '#000000', width: 2 }
+                    grid: { color: '#E5DFD5' },
+                    ticks: { color: '#111111', font: { weight: '700' } }
                 },
                 y: {
-                    grid: { color: '#cbd5e1' },
-                    ticks: { color: '#000000', font: { weight: 'bold' } },
-                    border: { color: '#000000', width: 2 }
+                    grid: { color: '#E5DFD5' },
+                    ticks: { color: '#111111', font: { weight: '700' } }
                 }
             }
         };
@@ -506,18 +417,18 @@
                 datasets: [{
                     label: 'Voltage (V)',
                     data: vData,
-                    borderColor: '#0284c7',
-                    backgroundColor: 'rgba(2, 132, 199, 0.12)',
+                    borderColor: '#4D9DE0',
+                    backgroundColor: 'rgba(77, 157, 224, 0.15)',
                     fill: true,
                     tension: 0.2,
-                    borderWidth: 2.5,
+                    borderWidth: 3,
                     pointRadius: 1
                 }]
             },
             options: chartOptions
         });
 
-        // Current & Power Chart (Dual Axis)
+        // Current & Power Chart
         new Chart(document.getElementById('currentPowerChart'), {
             type: 'line',
             data: {
@@ -526,16 +437,16 @@
                     {
                         label: 'Current (A)',
                         data: iData,
-                        borderColor: '#ea580c',
-                        borderWidth: 2.5,
+                        borderColor: '#F28C28',
+                        borderWidth: 3,
                         yAxisID: 'y',
                         pointRadius: 1
                     },
                     {
                         label: 'Power (W)',
                         data: pData,
-                        borderColor: '#7c3aed',
-                        borderWidth: 2.5,
+                        borderColor: '#E86A92',
+                        borderWidth: 3,
                         yAxisID: 'y1',
                         pointRadius: 1
                     }
@@ -545,15 +456,10 @@
                 ...chartOptions,
                 scales: {
                     ...chartOptions.scales,
-                    y: {
-                        ...chartOptions.scales.y,
-                        ticks: { color: '#ea580c', font: { weight: 'bold' } }
-                    },
                     y1: {
                         position: 'right',
                         grid: { drawOnChartArea: false },
-                        border: { color: '#000000', width: 2 },
-                        ticks: { color: '#7c3aed', font: { weight: 'bold' } }
+                        ticks: { color: '#E86A92', font: { weight: '700' } }
                     }
                 }
             }
@@ -567,11 +473,11 @@
                 datasets: [{
                     label: 'Capacity (mAh)',
                     data: capData,
-                    borderColor: '#16a34a',
-                    backgroundColor: 'rgba(22, 163, 74, 0.12)',
+                    borderColor: '#7BC043',
+                    backgroundColor: 'rgba(123, 192, 67, 0.15)',
                     fill: true,
                     tension: 0.2,
-                    borderWidth: 2.5,
+                    borderWidth: 3,
                     pointRadius: 1
                 }]
             },
@@ -586,11 +492,11 @@
                 datasets: [{
                     label: 'State of Charge (%)',
                     data: socData,
-                    borderColor: '#7c3aed',
-                    backgroundColor: 'rgba(124, 58, 237, 0.12)',
+                    borderColor: '#4D9DE0',
+                    backgroundColor: 'rgba(77, 157, 224, 0.15)',
                     fill: true,
                     tension: 0.2,
-                    borderWidth: 2.5,
+                    borderWidth: 3,
                     pointRadius: 1
                 }]
             },

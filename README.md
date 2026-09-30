@@ -1,44 +1,98 @@
-# ⚡ VOLTIX PRO — Modern Battery Analyzer & Electrochemical Telemetry Suite
+# ⚡ VOLTIX PRO — Neo-Brutalist Battery Analyzer & Electrochemical Telemetry Suite
 
-A modern, high-precision Python battery analysis workstation and interactive GUI application for analyzing battery discharge performance, capacity, energy, internal resistance, and electrochemical health.
+A high-precision Python battery workstation and desktop GUI engineered for analyzing battery discharge performance, capacity accumulation, energy delivery, internal resistance, and electrochemical degradation.
 
-![Voltix Pro Dashboard](tab0_dashboard.png)
+![Voltix Pro Cockpit](tab0_neobrutalist_cockpit.png)
 
 ---
 
 ## 📌 Project Overview
 
-**VOLTIX PRO** transforms raw battery telemetry data into an interactive, visual engineering experience. Built with **PySide6 (Qt6)**, **Pandas**, **NumPy**, and **Matplotlib**, it provides real-time telemetry playback, multi-channel synchronized plots, electrochemical phase decomposition, and automated diagnostic reports.
+**VOLTIX PRO** transforms raw electrochemical test logs into an interactive, high-contrast engineering workstation. Moving deliberately away from muted, dark-mode SaaS interfaces, VOLTIX PRO adopts an authentic **Neo-Brutalist design language**: unblurred hard-edge shadows, heavy black strokes, tactile physical button feedback, vibrant accent color-blocking, and high-DPI scaling.
 
-### Key Capabilities
-
-* ⚡ **Modern Cyber-Engineering Interface**: Deep dark aesthetic (`#0B0F19`) with glowing neon accents, responsive layout, and high-DPI scaling.
-* 🔋 **Interactive Physical Battery HUD**: Real-time animated battery gauge showing cell level depletion, terminal voltage, and instantaneous metrics.
-* 🕹️ **Dynamic Simulation Playback**: Scrubbable timeline with `Play`, `Pause`, `Reset`, and speed multiplier controls (`1x`, `2x`, `5x`, `10x`) with a real-time tracking cursor.
-* 📊 **Multi-Channel Synchronized Charts**:
-  * **Voltage vs Time** (with cutoff threshold & working plateau lines)
-  * **Current & Power vs Time** (dual-axis dynamic load tracking)
-  * **Capacity & Energy Accumulation** (Ah/mAh & Wh/mWh vs Time)
-  * **V vs Delivered Capacity** (the definitive battery discharge curve)
-* 🔬 **Electrochemical Diagnostics**:
-  * **Discharge Phase Breakdown**: Ohmic drop, working plateau, and knee depletion zones.
-  * **State of Charge (SoC %)** vs Voltage curve.
-  * **Voltage Sag Rate ($|dV/dt|$)** in $mV/s$.
-  * **DC Internal Resistance ($R_{dc}$)** estimation in $m\Omega$.
-* 📑 **Comprehensive Diagnostics & Reporting**:
-  * Automated cell grading (`Grade A`, `Grade B`, `Grade C`).
-  * Safety compliance checks (cutoff voltage violations, high sag rates, over-current).
-  * One-click **Interactive HTML Report** export with interactive Chart.js graphs.
-  * Tabular data inspector with real-time text filtering and CSV export.
+Built on **PySide6 (Qt 6)**, **Pandas**, **NumPy**, and **Matplotlib**, the workstation delivers real-time synchronized telemetry scrubbing, physical battery cell animation, electrochemical phase segmentation, and one-click export to standalone web reports.
 
 ---
 
-## 🛠️ Architecture & Technologies
+## 🎨 The Neo-Brutalist Design System
 
-* **GUI Framework**: [PySide6 (Qt 6)](https://www.qt.io/) — Native, hardware-accelerated desktop workstation interface.
-* **Data Processing**: [Pandas](https://pandas.pydata.org/) & [NumPy](https://numpy.org/) — High-precision numerical analysis and trapezoidal integration.
-* **Visualization**: [Matplotlib](https://matplotlib.org/) — Custom dark cyber-themed plots embedded via `FigureCanvasQTAgg`.
-* **Web Reporting**: HTML5, CSS3 Glassmorphism, and [Chart.js](https://www.chartjs.org/) for standalone shareable interactive web reports.
+VOLTIX PRO implements a cohesive, high-impact design system built around raw functional clarity and physical tactility:
+
+| Design Token | Value | Applied To |
+| :--- | :--- | :--- |
+| **Canvas Background** | `#F4EFE6` | Main window, application background, plot canvases |
+| **Surface / Cards** | `#FFFFFF` | Metric KPI containers, control docks, chart boxes |
+| **Ink & Outlines** | `#111111` | Primary typography, borders, axes lines, grid ticks |
+| **Border Weight** | `2px` – `3px` solid | Hard outlines on all cards, controls, tables, and frames |
+| **Drop Shadows** | `4px 4px 0 #111111` | Razor-sharp, unblurred 90° hard offset drop shadows |
+| **Corner Radius** | `0px` | Strict, sharp brutalist rectangular geometry |
+| **Typography** | `800` – `900` ExtraBold | Punchy metric values, badges, and section headers |
+
+### Vibrant Accent Color-Blocking
+* 🔵 **Electric Blue (`#4D9DE0`)**: Voltage discharge tracking, active tab indicators, primary telemetry channels.
+* 🟢 **Volt Green (`#7BC043`)**: Delivered energy ($Wh$), capacity ($Ah$), healthy status, Grade A certification.
+* 🟡 **Warning Amber (`#F7D046`)**: Table header highlights, status badges, cautionary thresholds, Grade B.
+* 🟠 **Energetic Orange (`#F28C28`)**: Dynamic discharge current ($A$), load transients, Grade C warnings.
+* 🌸 **Hot Pink (`#E86A92`)**: Instantaneous power ($W$), DC internal resistance ($R_{dc}$), critical alarms.
+
+---
+
+## 🔋 Key Capabilities & Modules
+
+### 1. 🎛️ Cockpit & Synchronized Telemetry Dashboard
+* **Synchronized Quad-Plot Workstation**:
+  * **Voltage vs Time**: Real-time terminal voltage drop, nominal plateau line, and automated cutoff detection.
+  * **Current & Power vs Time**: Dual-axis synchronized dynamic load monitoring.
+  * **Capacity & Energy Accumulation**: High-precision trapezoidal numerical integration ($Ah$ / $mAh$ and $Wh$ / $mWh$).
+  * **Discharge Curve ($V$ vs Delivered Capacity)**: The benchmark electrochemical fingerprint of the cell under test.
+* **Plateau Detection**: Automatically identifies the stable electrochemical discharge plateau ($\bar{V}_{\text{plateau}}$) and knee inflection point.
+
+### 2. 🔬 Electrochemical Phase Breakdown & Diagnostics
+* **Tri-Zone Discharge Segmentation**:
+  * **Ohmic Drop Phase**: Instantaneous IR drop upon discharge onset ($V_{\text{initial}} \to V_{\text{load}}$).
+  * **Stable Working Plateau**: Extended chemical potential phase.
+  * **Depletion Knee**: Point of rapid voltage collapse requiring cutoff intervention.
+* **Voltage Sag Velocity ($|dV/dt|$)**: Differential sag velocity in $mV/s$ for spotting thermal or kinetic runaway.
+* **Dynamic DC Internal Resistance ($R_{dc}$)**: Calculated in $m\Omega$ during current step transitions ($|\Delta I| \ge 25\,\text{mA}$).
+* **State of Charge (SoC %)**: Accurate reverse Coulomb-counting profile mapped against open-circuit terminal voltage.
+
+### 3. 🕹️ Real-Time Dynamic Simulation & Physical Battery HUD
+* **Animated Battery Cell HUD**: Color-reactive physical battery gauge that depletes graphically with real-time level fill and terminal readouts.
+* **Playback Controller**: Scrubbable timeline with `Play`, `Pause`, `Reset`, and speed multipliers (`1x`, `2x`, `5x`, `10x`).
+* **Crosshair Cursor**: Multi-chart synchronized cursor that tracks instantaneous values as the test plays back.
+
+### 4. 📑 Standalone Neo-Brutalist HTML Web Report
+* Generates [`battery_report.html`](file:///C:/Users/desai/Desktop/Batery%20Analyzer/battery_report.html), an offline, zero-dependency interactive engineering report.
+* Styled in full Neo-Brutalism with responsive Chart.js line graphs, telemetry tables, diagnostic badges, and mobile-friendly layouts.
+
+### 5. 🔍 Data Inspector & CSV Exporter
+* High-contrast filterable tabular inspector displaying instantaneous calculations ($V$, $I$, $P$, $\Delta t$, $Ah$, $Wh$, $R_{dc}$, $dV/dt$, SoC%).
+* Instant search and one-click export to sanitized CSV.
+
+---
+
+## 🖥️ Workstation Gallery
+
+````carousel
+![Cockpit Telemetry Dashboard](tab0_neobrutalist_cockpit.png)
+<!-- slide -->
+![Electrochemical Diagnostics & Phase Breakdown](tab1_neobrutalist_electro.png)
+<!-- slide -->
+![Dynamic Simulation & Physical Battery HUD](tab2_neobrutalist_sim.png)
+````
+
+1. **Top Control Bar**: Select chemistry presets (`Li-ion NMC 4.2V`, `LiFePO4 3.65V`, `LTO 2.8V`, `NiMH 1.45V`), configure nominal rated capacity and cutoff thresholds, or load custom CSVs.
+2. **KPI Header Banner**: Instant summary cards displaying Voltage Drop ($\Delta V$), Delivered Capacity, Delivered Energy, Current/Power Peaks, and Internal Resistance.
+3. **Dedicated Workstation Tabs**: Fast navigation between the Telemetry Cockpit, Electrochemical Phase Breakdown, Real-Time Simulation, Data Inspector, and Health Audit.
+
+---
+
+## 🛠️ Technology Stack
+
+* **Desktop Workstation**: [PySide6 (Qt 6)](https://www.qt.io/) — Hardware-accelerated Qt6 GUI with custom Neo-Brutalist widgets and tactile event handlers.
+* **Numerical Mathematics**: [NumPy](https://numpy.org/) & [Pandas](https://pandas.pydata.org/) — Vectorized cumulative trapezoidal integration, rate-of-change differentiation, and statistical percentiles.
+* **Data Visualization**: [Matplotlib](https://matplotlib.org/) — Embedded via `FigureCanvasQTAgg` with custom warm brutalist canvases (`#F4EFE6`), bold tick marks, and color-matched curves.
+* **Interactive Web Reporting**: HTML5, Neo-Brutalist CSS3, and [Chart.js](https://www.chartjs.org/) for standalone shareable HTML reports.
 
 ---
 
@@ -46,42 +100,49 @@ A modern, high-precision Python battery analysis workstation and interactive GUI
 
 ```text
 Batery Analyzer/
+├── modern_battery_analyzer.py      # Flagship PySide6 Neo-Brutalist workstation GUI & HUD
+├── battery_engine.py               # Core numerical engine, metrics dataclass, & HTML generator
+├── Battery_data.csv                # Primary sample battery test telemetry dataset
+├── battery_report.html             # Standalone interactive Neo-Brutalist HTML report
 │
-├── modern_battery_analyzer.py   # Flagship PySide6 GUI application & HUD
-├── battery_engine.py            # Core battery math, diagnostics, & HTML generator
-├── Battery_data.csv             # Primary battery test telemetry dataset
-├── battery_report.html          # Standalone interactive browser report
-├── tab0_dashboard.png           # Telemetry Dashboard screenshot
-├── tab1_electrochemistry.png    # Electrochemical Curves screenshot
-├── tab2_simulation.png          # Dynamic Simulation HUD screenshot
-├── tab3_inspector.png           # Data Inspector Table screenshot
-├── tab4_report.png              # Diagnostic Report screenshot
-└── README.md                    # Project documentation
+├── tab0_neobrutalist_cockpit.png   # Workstation screenshot: Telemetry Cockpit
+├── tab1_neobrutalist_electro.png   # Workstation screenshot: Electrochemical Curves
+├── tab2_neobrutalist_sim.png       # Workstation screenshot: Dynamic Simulation HUD
+│
+├── docs/                           # Deep-dive engineering documentation
+│   ├── 01_BATTERY_ENGINE_EXPLAINED.md             # In-depth numerical engine & math breakdown
+│   ├── 02_MODERN_BATTERY_ANALYZER_EXPLAINED.md    # Qt6 architecture & widget implementation
+│   └── 03_DATASET_AND_HTML_REPORT_EXPLAINED.md    # Telemetry schema & web report guide
+│
+├── .gitignore                      # Git ignore file
+└── README.md                       # Project documentation
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Requirements
+### 1. Prerequisites & Installation
 
-Ensure you have Python 3.10+ installed. Install the dependencies:
+Ensure you have Python 3.10 or newer installed:
 
 ```bash
+git clone <repo-url>
+cd "Batery Analyzer"
 pip install PySide6 matplotlib pandas numpy
 ```
 
 ---
 
-### 2. Launching the Modern Interface
+### 2. Launching the Workstation
 
-To open the modern interactive GUI application:
+Launch the full interactive Neo-Brutalist GUI:
 
 ```bash
 python modern_battery_analyzer.py
 ```
 
-You can also pass a custom CSV file directly:
+To load a specific battery telemetry dataset directly at launch:
 
 ```bash
 python modern_battery_analyzer.py path/to/my_battery_data.csv
@@ -89,17 +150,17 @@ python modern_battery_analyzer.py path/to/my_battery_data.csv
 
 ---
 
-### 3. Additional Execution Modes
+### 3. Command-Line & Headless Modes
 
-#### Headless / Terminal Mode
-To print the full engineering analysis and save a summary report without launching the GUI:
+#### Headless CLI Analysis
+Run an instantaneous mathematical analysis in the terminal without opening the GUI:
 
 ```bash
 python modern_battery_analyzer.py --cli
 ```
 
-#### Generate Standalone Interactive Web Report
-To generate an interactive HTML report viewable in any web browser:
+#### Generate Standalone Web Report
+Produce the Neo-Brutalist HTML report directly from the CLI:
 
 ```bash
 python modern_battery_analyzer.py --html
@@ -107,63 +168,45 @@ python modern_battery_analyzer.py --html
 
 ---
 
-## 📐 Mathematical & Engineering Formulations
+## 📐 Mathematical & Electrochemical Formulations
 
-### 1. Instantaneous Power
+### 1. Instantaneous Electrical Power
 $$P_i = V_i \times I_i \quad \text{[Watts]}$$
 
-### 2. High-Precision Trapezoidal Capacity Integration
-Delivered capacity is calculated using cumulative trapezoidal numerical integration over sample intervals $\Delta t$:
+### 2. Cumulative Trapezoidal Capacity Integration
+Delivered capacity is computed via cumulative trapezoidal numerical integration across variable sampling intervals $\Delta t$:
 $$\text{Capacity}(t) = \frac{1}{3600} \sum_{k=1}^{n} \left(\frac{I_{k-1} + I_k}{2}\right) \Delta t_k \quad \text{[Ampere-hours (Ah)]}$$
 
-### 3. High-Precision Delivered Energy Integration
+### 3. Cumulative Delivered Energy Integration
 $$\text{Energy}(t) = \frac{1}{3600} \sum_{k=1}^{n} \left(\frac{P_{k-1} + P_k}{2}\right) \Delta t_k \quad \text{[Watt-hours (Wh)]}$$
 
 ### 4. Thermodynamic Mean Discharge Voltage
 $$\bar{V}_{\text{discharge}} = \frac{\text{Delivered Energy (Wh)}}{\text{Delivered Capacity (Ah)}} \quad \text{[Volts]}$$
 
-### 5. DC Internal Resistance ($R_{dc}$) Estimation
-Estimated from dynamic current transitions where $|\Delta I| \ge 0.025\,\text{A}$:
+### 5. Dynamic DC Internal Resistance ($R_{dc}$) Estimation
+Sampled during dynamic current transitions ($|\Delta I| \ge 0.025\,\text{A}$):
 $$R_{dc} \approx \frac{|\Delta V|}{|\Delta I|} \times 1000 \quad \text{[milliohms } (m\Omega)\text{]}$$
 
 ### 6. Voltage Sag Velocity
+Differential rate of terminal voltage collapse:
 $$\frac{dV}{dt} = \frac{V_k - V_{k-1}}{\Delta t_k} \times 1000 \quad \text{[mV/s]}$$
 
-### 7. State of Charge (SoC %)
+### 7. State of Charge (Coulomb Counting)
 $$\text{SoC}(t) = 100 \times \left(1 - \frac{\text{Capacity}(t)}{\text{Capacity}_{\text{total}}}\right) \quad [\%]$$
 
 ---
 
-## 🖥️ User Interface Tour
+## 📚 Deep-Dive Technical Documentation
 
-````carousel
-![Telemetry Dashboard](tab0_dashboard.png)
-<!-- slide -->
-![Electrochemical Curves](tab1_electrochemistry.png)
-<!-- slide -->
-![Dynamic Simulation](tab2_simulation.png)
-<!-- slide -->
-![Data Inspector](tab3_inspector.png)
-<!-- slide -->
-![Diagnostic Report](tab4_report.png)
-````
+For complete line-by-line architectural and implementation details, refer to the documentation in [`docs/`](file:///C:/Users/desai/Desktop/Batery%20Analyzer/docs):
 
-1. **Top Header & Chemistry Selector**:
-   - Select chemistry presets: `Li-ion NMC (4.2V)`, `LiFePO4 (3.65V)`, `LTO (2.8V)`, `NiMH (1.45V)`, or custom.
-   - Adjust nominal rated capacity and cutoff threshold on the fly.
-   - Quick action buttons to load any CSV, export HTML reports, and save high-resolution chart snapshots.
-2. **KPI Metrics Banner**:
-   - Real-time glassmorphic cards showing Terminal Voltage, Delivered Capacity ($Ah$ / $mAh$), Delivered Energy ($Wh$ / $mWh$), Dynamic Current & Power, and Cell Health Grade.
-3. **5 Dedicated Tabs**:
-   - **Telemetry Dashboard**: 4 synchronized subplots with custom dark styling and plateau markers.
-   - **Electrochemical Curves**: Detailed $V$ vs $Ah$ discharge curve with shaded phases (Ohmic, Plateau, Knee), OCV-SoC profile, $dV/dt$ sag rate, and Power vs Voltage.
-   - **Dynamic Simulation**: Visual battery cell draining in real time, digital HUD indicators, scrub slider, and animated graph cursor.
-   - **Data Inspector Table**: Filterable table with all calculated engineering metrics and instant CSV export.
-   - **Diagnostic Report**: Audit report with cell grade, degradation analysis, and one-click copy/save options.
+* [`docs/01_BATTERY_ENGINE_EXPLAINED.md`](file:///C:/Users/desai/Desktop/Batery%20Analyzer/docs/01_BATTERY_ENGINE_EXPLAINED.md): Mathematical formulations, numerical algorithms, dataclass architecture, and validation checks.
+* [`docs/02_MODERN_BATTERY_ANALYZER_EXPLAINED.md`](file:///C:/Users/desai/Desktop/Batery%20Analyzer/docs/02_MODERN_BATTERY_ANALYZER_EXPLAINED.md): PySide6 interface implementation, custom brutalist widgets, drop shadows, and multi-canvas plotting.
+* [`docs/03_DATASET_AND_HTML_REPORT_EXPLAINED.md`](file:///C:/Users/desai/Desktop/Batery%20Analyzer/docs/03_DATASET_AND_HTML_REPORT_EXPLAINED.md): Telemetry dataset specifications, Chart.js templates, and export mechanics.
 
 ---
 
-## 👨‍💻 Author & License
+## 👨‍💻 License
 
-Developed for high-precision battery performance analysis and engineering education.  
-Open-source under the MIT License.
+Developed for high-precision battery performance analysis, laboratory testing, and engineering education.  
+Open-source under the **MIT License**.
