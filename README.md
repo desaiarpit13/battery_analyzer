@@ -1,4 +1,4 @@
-# ⚡ VOLTIX PRO — Neo-Brutalist Battery Analyzer & Electrochemical Telemetry Suite
+# VOLTIX PRO — Neo-Brutalist Battery Analyzer & Electrochemical Telemetry Suite
 
 A high-precision Python battery workstation and desktop GUI engineered for analyzing battery discharge performance, capacity accumulation, energy delivery, internal resistance, and electrochemical degradation.
 
